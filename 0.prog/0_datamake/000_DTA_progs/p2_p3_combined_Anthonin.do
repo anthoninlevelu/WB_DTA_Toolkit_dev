@@ -718,12 +718,20 @@ foreach pta of global all_agree {
 									*clfuzz f3, dist(dist_L2) id(id_agree) k(3)
 
 								*1.1.3. store results
-
+								
+									* Fix deep PTA cluster number = 0 based on EC-enlargement 27 (117)
+									
+									sum k3 if id_agree == 117
+									local deep = r(mean)
+									replace k3 = 0 if k3 == `deep'
+									
 									di "Storing results to excel file"
 									
 									qui sum k3 if id_agree == `pta'
 									local k3m = r(mean)
 									qui putexcel D`j' = "`k3m'" 
+									
+									
 								
 								// ********************************************************************************
 								// ********************************************************************************
@@ -1074,6 +1082,12 @@ foreach pta of global all_agree {
 									*clfuzz f3, dist(dist_L2) id(id_agree) k(3)
 
 								*1.1.3. store results
+								
+									* Fix deep PTA cluster number = 0 based on EC-enlargement 27 (117)
+									
+									sum k3 if id_agree == 117
+									local deep = r(mean)
+									replace k3 = 0 if k3 == `deep'
 
 									di "Storing results to excel file"
 									
