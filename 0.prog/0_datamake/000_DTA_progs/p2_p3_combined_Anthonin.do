@@ -574,7 +574,6 @@ foreach pta of global all_agree {
 									*levelsof id_agree if baseline_k3 != 0
 									
 									
-
 							
 							* Append results of baseline
 							
@@ -950,9 +949,6 @@ foreach pta of global all_agree {
 
 							********************************************************************************
 							* Only X out of XXXX  PTA are 'Deep'
-
-							tab baseline_k3 
-							tab id_agree if baseline_k3 == 2
 
 							
 								*1.1.1. load temp dataset

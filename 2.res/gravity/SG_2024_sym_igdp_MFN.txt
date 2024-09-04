@@ -1,0 +1,29 @@
+		(1)	(2)	(3)
+VARIABLES	LABELS	agro_ieV_man_ieV	agro_ieV_man_ieV	agro_ieV_man_ieV
+				
+rta_k1	rta_k1	0.299***	0.297***	0.283***
+		(0.088)	(0.088)	(0.092)
+rta_k2	rta_k2	0.279***	0.289***	0.271***
+		(0.047)	(0.046)	(0.048)
+rta_k3	rta_k3	0.158***	0.142***	0.176***
+		(0.050)	(0.051)	(0.049)
+INTL_BRDR_1990	INTL_BRDR_1990	0.243***	0.244***	0.242***
+		(0.025)	(0.025)	(0.024)
+INTL_BRDR_2000	INTL_BRDR_2000	0.502***	0.504***	0.502***
+		(0.036)	(0.037)	(0.036)
+INTL_BRDR_2010	INTL_BRDR_2010	0.478***	0.480***	0.476***
+		(0.037)	(0.037)	(0.037)
+rta_out	rta_out	0.118	0.117	0.120
+		(0.078)	(0.078)	(0.078)
+rta_psa	rta_psa	-0.076	-0.072	-0.084
+		(0.076)	(0.077)	(0.076)
+mfn_od	mfn_od	0.191***	0.187***	0.197***
+		(0.033)	(0.034)	(0.033)
+				
+Observations		715,947	715,947	715,947
+R-squared		1.000	1.000	1.000
+Period		Full	Full	Full
+Cluster		kmean	kmean_rec	avg_k
+Deep		1	1	1
+Standard errors in parentheses				
+*** p<0.01, ** p<0.05, * p<0.1				
