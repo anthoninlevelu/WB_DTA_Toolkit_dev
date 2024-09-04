@@ -1,0 +1,1447 @@
+
+. 
+. di $z
+30
+
+. 
+.  if   $z         == 0 {
+.         
+. wbopendata,  indicator(ny.gdp.mktp.cd) long clear  
+. 
+. 
+. drop if countrycode ==""
+. rename ny_gdp_mktp_cd gdp_wb
+. keep countrycode countryname year gdp_wb
+. 
+. drop if gdp == .
+. 
+. rename countrycode iso3 
+. 
+. keep year  iso3 gdp_wb countryname
+. replace iso3="SCG" if   ( iso3=="SRB"  & year  <= 2005 )   //  this is because in Comtrade 
+. replace iso3="YUG" if   ( iso3=="SCG"  & year  <= 1991 )   //  this is because in Comtrade 
+. 
+. replace iso3="SUN" if   ( iso3=="RUS"  & year  <= 1991 )
+. replace iso3="CSK" if    (iso3=="CZE" | iso3=="SVK") & year <= 1992
+. 
+. save "$CTY/WBdata_gdp.dta", replace
+. 
+. }
+
+. ********************************************************************************
+. 
+. local iso     "$iso"
+
+. 
+. 
+. 
+. 
+. use "$CTY/WBdata_gdp.dta", clear
+
+. preserve
+
+. bys iso3: keep if _n == 1
+(12,913 observations deleted)
+
+. keep iso3 countryname
+
+. rename iso3 iso_o
+
+.         save "$RES//`iso'//temp/wb_country_name", replace
+(file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//CYP//temp/wb_country_name.dta not found)
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//CYP//temp/wb_country_name.dta saved
+
+. restore
+
+. 
+. 
+. collapse (sum) gdp_wb, by(iso3 year countryname)
+
+. 
+. 
+. keep if year >= $year_start
+(4,141 observations deleted)
+
+. keep if year <= $year_end
+(0 observations deleted)
+
+. 
+. 
+. 
+. collapse (sum) gdp_wb, by(iso3 year)
+
+. replace gdp_wb = gdp_wb/1000000                 /*express in milion US$ */
+(9,034 real changes made)
+
+. 
+. save "$RES//`iso'//temp/temp_gdp", replace
+(file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//CYP//temp/temp_gdp.dta not found)
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//CYP//temp/temp_gdp.dta saved
+
+. 
+. ********************************************************************************
+. ********************************************************************************
+. 
+. use "$CTY/WBregio_toolkit", clear
+(This version  11:56:51   6 Jun 2024 )
+
+. 
+. bys iso3: keep if _n == 1
+(0 observations deleted)
+
+. 
+. 
+. save "$RES//`iso'//temp/temp_regio", replace
+(file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//CYP//temp/temp_regio.dta not found)
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//CYP//temp/temp_regio.dta saved
+
+. 
+. ********************************************************************************
+. cd "$TRADESTATS"
+d:\santoni\Dropbox\WW_other_projs\WB_2024\WB_GE\WB_DTA_Toolkit\1.data\BACI
+
+. unzipfile  cty_code_baci_HS2002, replace
+    inflating: cty_code_baci.dta
+
+successfully unzipped cty_code_baci_HS2002.zip to current directory
+total processed:  1
+        skipped:  0
+      extracted:  1
+
+. use cty_code_baci, clear
+
+. 
+. merge m:1 iso3 using "$DATA/cty/TP_FAO_cty_year",  keepusing(iso3)
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                            72
+        from master                        71  (_merge==1)
+        from using                          1  (_merge==2)
+
+    Matched                               168  (_merge==3)
+    -----------------------------------------
+
+. drop if _m == 1
+(71 observations deleted)
+
+. drop _m 
+
+. 
+. rename iso3 country
+
+. rename libi country_name
+
+. replace    country_name = "Turkey"              if country =="TUR"
+(1 real change made)
+
+. replace    country_name = "Yugoslavia"          if country =="YUG"
+(1 real change made)
+
+. 
+. cap drop ctycode
+
+. cap drop if strpos(country_name,  "gium-Luxem")
+
+. cap drop if strpos(country_name,  "Fed. Rep. of Germany")
+
+. cap drop if strpos(country_name,  "Sudan (...2011)")
+
+. 
+. 
+. save "$CTY/temp_cty_name", replace
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/1.data/CTY/temp_cty_name.dta saved
+
+. 
+. cap erase cty_code_baci.dta
+
+. 
+. ********************************************************************************
+. * upload trade baci
+. cd "$TRADESTATS"
+d:\santoni\Dropbox\WW_other_projs\WB_2024\WB_GE\WB_DTA_Toolkit\1.data\BACI
+
+. unzipfile  $baci, replace
+    inflating: trade_baci_cty.dta
+
+successfully unzipped baci_HS2002.zip to current directory
+total processed:  1
+        skipped:  0
+      extracted:  1
+
+. use "trade_baci_cty", clear
+
+. 
+. ********************************************************************************
+. * ensure the same perimeter as trade and production dataset
+. 
+. gen iso3 = iso_o
+
+. 
+. merge m:1 iso3 using "$DATA/cty/TP_FAO_cty_year",    // CSK, SUN, YUG: not matched
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                     5,639,247
+        from master                 5,639,244  (_merge==1)
+        from using                          3  (_merge==2)
+
+    Matched                       199,763,153  (_merge==3)
+    -----------------------------------------
+
+. keep if _m == 3
+(5,639,247 observations deleted)
+
+. drop _m 
+
+. 
+.  
+. drop if t < min_year
+(0 observations deleted)
+
+. drop if t > max_year 
+(4,798 observations deleted)
+
+. 
+. drop min_year
+
+. drop max_year
+
+. drop iso3 
+
+.  
+. ********************************************************************************
+. 
+. gen iso3 = iso_d
+
+. 
+. merge m:1 iso3 using "$DATA/cty/TP_FAO_cty_year" 
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                    11,592,493
+        from master                11,592,490  (_merge==1)
+        from using                          3  (_merge==2)
+
+    Matched                       188,165,865  (_merge==3)
+    -----------------------------------------
+
+. keep if _m == 3
+(11,592,493 observations deleted)
+
+. drop _m 
+
+. 
+. drop if t < min_year
+(0 observations deleted)
+
+. drop if t > max_year 
+(38,434 observations deleted)
+
+. 
+. drop min_year
+
+. drop max_year
+
+. drop iso3
+
+. 
+. 
+. compress
+  (0 bytes saved)
+
+. save "$RES//`iso'//temp/trade_baci_cty", replace
+(file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//CYP//temp/trade_baci_cty.dta not found)
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//CYP//temp/trade_baci_cty.dta saved
+
+. 
+. cap erase "trade_baci_cty.dta"
+
+. 
+. ********************************************************************************
+. ********************************************************************************
+.  
+. 
+. 
+. preserve
+
+.         rename t year
+
+.         collapse (sum) X = v, by(iso_o year)
+
+.         rename iso_o iso3
+
+.         save "$RES//`iso'//temp/trade", replace
+(file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//CYP//temp/trade.dta not found)
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//CYP//temp/trade.dta saved
+
+. restore 
+
+. 
+. ********************************************************************************
+. 
+.         rename t year
+
+.         collapse (sum) M= v, by(iso_d year)
+
+.         rename iso_d iso3
+
+. 
+. merge 1:1 year iso3 using "$RES//`iso'//temp/trade"
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                             0
+    Matched                             3,396  (_merge==3)
+    -----------------------------------------
+
+. cap drop _m
+
+. 
+. save "$RES//`iso'//temp/trade", replace
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//CYP//temp/trade.dta saved
+
+. 
+. ********************************************************************************
+. ********************************************************************************
+. 
+. use "$RES//`iso'//temp/temp_gdp", clear
+
+. keep if year >= $fdate_bg
+(3,658 observations deleted)
+
+. merge m:1 iso3 using "$RES//`iso'//temp/temp_regio"
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                         2,018
+        from master                     2,015  (_merge==1)
+        from using                          3  (_merge==2)
+
+    Matched                             3,361  (_merge==3)
+    -----------------------------------------
+
+. drop if _m ==2
+(3 observations deleted)
+
+. drop _m
+
+.  
+. 
+. merge 1:1 iso3 year using "$RES//`iso'//temp/trade"
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                         2,062
+        from master                     2,021  (_merge==1)
+        from using                         41  (_merge==2)
+
+    Matched                             3,355  (_merge==3)
+    -----------------------------------------
+
+. keep if         _m == 3
+(2,062 observations deleted)
+
+. drop            _merge
+
+.                         
+. keep                                            if region       == "$reg_l"                     
+(2,351 observations deleted)
+
+. replace region="`iso'"          if iso3         == "`iso'"
+(21 real changes made)
+
+. replace region="$reg_s"         if iso3     != "`iso'"
+(983 real changes made)
+
+. 
+. replace X = X / 1000   // BACI in thousand dollars
+(1,004 real changes made)
+
+. replace M = M / 1000
+(1,004 real changes made)
+
+. 
+. 
+. collapse (sum) X M gdp, by(region year)
+
+. 
+. gen openness = (X + M)/gdp
+
+. 
+. keep region year openness
+
+. 
+. reshape wide openness, i(year) j(region) string
+(j = CYP ECA)
+
+Data                               Long   ->   Wide
+-----------------------------------------------------------------------------
+Number of observations               42   ->   21          
+Number of variables                   3   ->   3           
+j variable (2 values)            region   ->   (dropped)
+xij variables:
+                               openness   ->   opennessCYP opennessECA
+-----------------------------------------------------------------------------
+
+. 
+. preserve
+
+.         keep if year == $ldate_bg3 | year== $ldate_bg2  | year== $ldate_bg1   | year== $ldate_bg
+(17 observations deleted)
+
+.         export excel using "$RES//`iso'//statistics.xlsx", sheet("Openness")  sheetreplace firstrow(variables) nolabel 
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//CYP//statistics.xlsx saved
+
+. restore
+
+. 
+. preserve
+
+.         keep if year >= $fdate_bg
+(0 observations deleted)
+
+.         export excel using "$RES//`iso'//statistics.xlsx", sheet("Openness_long")  sheetreplace firstrow(variables) nolabel 
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//CYP//statistics.xlsx saved
+
+. restore
+
+. 
+. 
+. *******************************************************************************/
+. ********************************************************************************
+. * Prepare Data: only products exported by the country of interest
+. ********************************************************************************
+. ********************************************************************************
+. 
+. use "$GRAVSTATS/gravity_toolkit.dta" , clear
+
+. 
+. 
+. cap rename iso3_o  iso_o 
+
+. cap rename iso3_d  iso_d
+
+. cap rename year    t
+
+. 
+. 
+. rename iso_o iso3
+
+. merge m:1 iso3 using "$CTY/WBregio_toolkit.dta", keepusing(region)
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                             0
+    Matched                           903,107  (_merge==3)
+    -----------------------------------------
+
+. drop if _m == 2
+(0 observations deleted)
+
+. drop _m
+
+. 
+. rename iso3     iso_o 
+
+. rename region region_o
+
+. 
+. 
+. 
+. 
+. ********************************************************************************
+. ********************************************************************************
+.  
+. gen $reg_s                      = (region_o =="$reg_l"  & iso_o !="`iso'")
+
+. 
+. 
+. *******************************************************************************/
+. ********************************************************************************
+. 
+. rename  iso_d iso3
+
+. 
+. merge m:1 iso3 using "$CTY/WBregio_toolkit.dta", keepusing(region)
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                             0
+    Matched                           903,107  (_merge==3)
+    -----------------------------------------
+
+. drop if _m == 2
+(0 observations deleted)
+
+. drop _m
+
+. 
+. rename iso3             iso_d 
+
+. rename region   region_d
+
+. rename t year
+
+. compress
+  variable wto_od was float now byte
+  variable gatt_od was float now byte
+  variable ECA was float now byte
+  (8,127,963 bytes saved)
+
+. save    "$RES//`iso'//temp/gravity_temp", replace
+(file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//CYP//temp/gravity_temp.dta not found)
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//CYP//temp/gravity_temp.dta saved
+
+. 
+. ********************************************************************************
+. *******************************************************************************
+. * Trade Stats on number of exported products, geographical distribution & compet 
+. ********************************************************************************
+. ********************************************************************************
+. 
+. use "$RES//`iso'//temp/trade_baci_cty", clear
+
+. 
+. rename t year
+
+. keep if year>= $ldate_bg2  
+(61,712,888 observations deleted)
+
+. 
+. ********************************************************************************
+. 
+. gen iso3 = iso_o
+
+. merge m:1 iso3 using "$RES//`iso'//temp/temp_regio"
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                             4
+        from master                         0  (_merge==1)
+        from using                          4  (_merge==2)
+
+    Matched                       126,414,543  (_merge==3)
+    -----------------------------------------
+
+. keep if _m ==3
+(4 observations deleted)
+
+. drop _m iso3
+
+. 
+. rename  region region_o
+
+. 
+. ********************************************************************************
+. 
+. gen iso3 = iso_d
+
+. merge m:1 iso3 using "$RES//`iso'//temp/temp_regio"
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                             4
+        from master                         0  (_merge==1)
+        from using                          4  (_merge==2)
+
+    Matched                       126,414,543  (_merge==3)
+    -----------------------------------------
+
+. keep if _m ==3
+(4 observations deleted)
+
+. drop _m iso3
+
+. 
+. rename  region region_d
+
+. 
+. ********************************************************************************
+. 
+. compress
+  (0 bytes saved)
+
+. 
+. save    "$RES//`iso'//temp/trade_t_interv", replace
+(file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//CYP//temp/trade_t_interv.dta not found)
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//CYP//temp/trade_t_interv.dta saved
+
+. 
+. ********************************************************************************
+. ********************************************************************************
+. 
+. * main destination markets: all products
+. 
+. use "$RES//`iso'//temp/gravity_temp" , clear
+
+.  bys iso_o year: keep if _n == 1
+(897,338 observations deleted)
+
+.  keep eu_o iso_o year
+
+. save "$RES//`iso'//temp/eu_orig", replace 
+(file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//CYP//temp/eu_orig.dta not found)
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//CYP//temp/eu_orig.dta saved
+
+. 
+. use "$RES//`iso'//temp/gravity_temp" , clear
+
+.  bys iso_d year: keep if _n == 1
+(897,338 observations deleted)
+
+.  keep eu_d iso_d year
+
+. save "$RES//`iso'//temp/eu_destin", replace 
+(file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//CYP//temp/eu_destin.dta not found)
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//CYP//temp/eu_destin.dta saved
+
+.  
+. ********************************************************************************
+. ********************************************************************************
+. ********************************************************************************
+. ********************************************************************************
+. ********************************************************************************
+. ********************************************************************************
+. 
+. use  "$RES//`iso'//temp/trade_t_interv", clear
+
+. 
+. replace         region_o = "$reg_s" if region_o == "$reg_l"
+(67,524,905 real changes made)
+
+. replace         region_d = "$reg_s" if region_d == "$reg_l"
+(54,889,028 real changes made)
+
+. 
+. keep            if region_o =="$reg_s" | region_d =="$reg_s"
+(40,708,409 observations deleted)
+
+. 
+. replace         region_o = iso_o if iso_o == "`iso'"
+(280,422 real changes made)
+
+. replace         region_d = iso_d if iso_d == "`iso'"
+(760,067 real changes made)
+
+. 
+. collapse (sum) v, by(region_o iso_o iso_d region_d year)
+
+. 
+. ********************************************************************************
+. ********************************************************************************
+. ********************************************************************************
+. * Trade Facts 
+. ********************************************************************************
+. ********************************************************************************
+. ********************************************************************************
+. preserve
+
+.         keep if iso_d == "`iso'"
+(152,663 observations deleted)
+
+.         joinby iso_o year using "$RES//`iso'//temp/eu_orig", unmatched(both)
+
+.         tab _m
+
+                       _merge |      Freq.     Percent        Cum.
+------------------------------+-----------------------------------
+           only in using data |      3,929       68.11       68.11
+both in master and using data |      1,840       31.89      100.00
+------------------------------+-----------------------------------
+                        Total |      5,769      100.00
+
+.         drop if _m == 2
+(3,929 observations deleted)
+
+. 
+.         
+. ********************************************************************************        
+. 
+. if "$EU_aggregate" =="YES" {
+. 
+.         replace iso_o = "EU" if eu_o == 1
+(345 real changes made)
+. 
+. }
+
+.  
+. ********************************************************************************
+.         
+.         
+.         collapse (sum) v, by(  iso_o iso_d year)
+
+. 
+.          
+.         bys year iso_d: egen                    M = total(v)
+
+. 
+.                                         gen m_mkts_sh   =   v/M
+
+. 
+.         gsort year iso_d  -m_mkts_sh              
+
+.         export excel using "$RES//`iso'//statistics.xlsx", sheet("Top Mkts M")  sheetreplace firstrow(variables) nolabel 
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//CYP//statistics.xlsx saved
+
+. restore
+
+. 
+. ********************************************************************************
+. ********************************************************************************
+. ********************************************************************************
+. 
+. preserve
+
+.                 keep if region_d == "$reg_s" | region_d == "`iso'"
+(63,014 observations deleted)
+
+. 
+. joinby iso_o year using "$RES//`iso'//temp/eu_orig", unmatched(both)
+
+.         tab _m
+
+                       _merge |      Freq.     Percent        Cum.
+------------------------------+-----------------------------------
+           only in using data |      3,665        3.85        3.85
+both in master and using data |     91,489       96.15      100.00
+------------------------------+-----------------------------------
+                        Total |     95,154      100.00
+
+.         drop if _m == 2
+(3,665 observations deleted)
+
+. 
+. ********************************************************************************        
+. 
+. if "$EU_aggregate" =="YES" {
+. 
+.         replace iso_o = "EU" if eu_o == 1
+(16,807 real changes made)
+. 
+. }
+
+.  
+. ********************************************************************************                
+. 
+.         collapse (sum) v, by(iso_o region_d year)
+
+. 
+.         bys year region_d: egen num_mkts = nvals(iso_o)
+
+. 
+.         bys year region_d: egen                         M = total(v)
+
+. 
+.                                           gen m_mkts_sh   =   v/M
+
+. 
+.         gsort year region_d  -m_mkts_sh           
+
+.                                           
+.         bys year region_d:  gen         rank      = _n                    
+
+. 
+. 
+.         replace m_mkts_sh = .                                                   if rank >10
+(3,007 real changes made, 3,007 to missing)
+
+. 
+. 
+.         bys year region_d:  egen top_10_mkts  = total(m_mkts_sh)
+
+. 
+. 
+.         collapse (mean) num_mkts  top_10_mkts, by(year region) 
+
+.         reshape wide num_mkts  top_10_mkts, i(year) j(region) string
+(j = CYP ECA)
+
+Data                               Long   ->   Wide
+-----------------------------------------------------------------------------
+Number of observations               26   ->   13          
+Number of variables                   4   ->   5           
+j variable (2 values)          region_d   ->   (dropped)
+xij variables:
+                               num_mkts   ->   num_mktsCYP num_mktsECA
+                            top_10_mkts   ->   top_10_mktsCYP top_10_mktsECA
+-----------------------------------------------------------------------------
+
+.         export excel using "$RES//`iso'//statistics.xlsx", sheet("Top 10 Mkts M")  sheetreplace firstrow(variables) nolabel 
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//CYP//statistics.xlsx saved
+
+. restore
+
+. 
+. ********************************************************************************
+. ********************************************************************************
+. 
+. preserve
+
+. 
+. keep if region_d == "$reg_s" | region_d == "`iso'"
+(63,014 observations deleted)
+
+. 
+.         joinby iso_o year using "$RES//`iso'//temp/eu_orig", unmatched(both)
+
+.         tab _m
+
+                       _merge |      Freq.     Percent        Cum.
+------------------------------+-----------------------------------
+           only in using data |      3,665        3.85        3.85
+both in master and using data |     91,489       96.15      100.00
+------------------------------+-----------------------------------
+                        Total |     95,154      100.00
+
+.         drop if _m == 2
+(3,665 observations deleted)
+
+. 
+.  
+. ********************************************************************************        
+. 
+. if "$EU_aggregate" =="YES" {
+. 
+.         replace iso_o = "EU" if eu_o == 1
+(16,807 real changes made)
+. 
+. }
+
+.  
+. ********************************************************************************
+.         
+. collapse (sum) v, by(region_d iso_o year)
+
+. 
+. bys year region_d: egen                 X = total(v)
+
+. 
+.                                   gen m_mkts_sh   =   v/X
+
+. 
+. gsort year region  -m_mkts_sh             
+
+.                                   
+. bys year region_d:  gen         rank      = _n                    
+
+. 
+. 
+. drop                                                    if rank >10
+(3,007 observations deleted)
+
+. export excel using "$RES//`iso'//statistics.xlsx", sheet("Top 10 Mkts_detail M")  sheetreplace firstrow(variables) nolabel 
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//CYP//statistics.xlsx saved
+
+. 
+. 
+. drop                                                    if rank >1
+(234 observations deleted)
+
+. collapse (mean) m_mkts_sh, by(year region_d iso_o)
+
+. reshape wide   m_mkts_sh, i(year iso_o) j(region_d) string
+(j = CYP ECA)
+
+Data                               Long   ->   Wide
+-----------------------------------------------------------------------------
+Number of observations               26   ->   13          
+Number of variables                   4   ->   4           
+j variable (2 values)          region_d   ->   (dropped)
+xij variables:
+                              m_mkts_sh   ->   m_mkts_shCYP m_mkts_shECA
+-----------------------------------------------------------------------------
+
+. export excel using "$RES//`iso'//statistics.xlsx", sheet("First Mkt M")  sheetreplace firstrow(variables) nolabel 
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//CYP//statistics.xlsx saved
+
+. restore
+
+. 
+. 
+. ********************************************************************************
+. ********************************************************************************
+. ********************************************************************************
+. 
+. preserve 
+
+.         keep if iso_o == "`iso'"
+(152,460 observations deleted)
+
+.         joinby iso_d year using "$RES//`iso'//temp/eu_destin", unmatched(both)
+
+.         tab _m
+
+                       _merge |      Freq.     Percent        Cum.
+------------------------------+-----------------------------------
+           only in using data |      3,726       64.59       64.59
+both in master and using data |      2,043       35.41      100.00
+------------------------------+-----------------------------------
+                        Total |      5,769      100.00
+
+.         drop if _m == 2
+(3,726 observations deleted)
+
+. 
+.         
+. ********************************************************************************        
+. 
+. if "$EU_aggregate" =="YES" {
+. 
+.         replace iso_d = "EU" if eu_d == 1
+(345 real changes made)
+. 
+. }
+
+.  
+. ********************************************************************************
+.  
+.         
+.         
+.         collapse (sum) v, by( iso_o iso_d year)
+
+. 
+.         bys year iso_o: egen num_mkts = nvals(iso_d)
+
+. 
+.         bys year iso_o: egen                    X = total(v)
+
+. 
+.                                           gen x_mkts_sh   =   v/X
+
+.                                           
+.         gsort year iso_o  -x_mkts_sh
+
+.         export excel using "$RES//`iso'//statistics.xlsx", sheet("Top Mkts X")  sheetreplace firstrow(variables) nolabel 
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//CYP//statistics.xlsx saved
+
+. restore
+
+. 
+. ********************************************************************************
+. ********************************************************************************
+. ********************************************************************************
+. ********************************************************************************
+. 
+. preserve
+
+.         keep if region_o == "$reg_s" | region_o == "`iso'"
+(62,541 observations deleted)
+
+.  
+.         joinby iso_d year using "$RES//`iso'//temp/eu_destin", unmatched(both)
+
+.         tab _m
+
+                       _merge |      Freq.     Percent        Cum.
+------------------------------+-----------------------------------
+           only in using data |      3,665        3.83        3.83
+both in master and using data |     91,962       96.17      100.00
+------------------------------+-----------------------------------
+                        Total |     95,627      100.00
+
+.         drop if _m == 2
+(3,665 observations deleted)
+
+.         
+. ********************************************************************************        
+. 
+. if "$EU_aggregate" =="YES" {
+. 
+.         replace iso_d = "EU" if eu_d == 1
+(16,729 real changes made)
+. 
+. }
+
+.  
+. ********************************************************************************        
+.         
+.         collapse (sum) v, by(  region_o iso_d year)
+
+. 
+.         bys year region_o: egen num_mkts = nvals(iso_d)
+
+. 
+.         bys year region_o: egen                         X = total(v)
+
+. 
+.                                           gen x_mkts_sh   =   v/X
+
+. 
+.         gsort year region_o  -x_mkts_sh           
+
+.                                           
+.         bys year region_o:  gen         rank      = _n                    
+
+. 
+. 
+.         replace x_mkts_sh = .                                                   if rank >10
+(3,210 real changes made, 3,210 to missing)
+
+. 
+. 
+.         bys year region_o:  egen top_10_mkts  = total(x_mkts_sh)
+
+. 
+. 
+.         collapse (mean) num_mkts  top_10_mkts, by(year region) 
+
+.         reshape wide num_mkts  top_10_mkts, i(year) j(region) string
+(j = CYP ECA)
+
+Data                               Long   ->   Wide
+-----------------------------------------------------------------------------
+Number of observations               26   ->   13          
+Number of variables                   4   ->   5           
+j variable (2 values)          region_o   ->   (dropped)
+xij variables:
+                               num_mkts   ->   num_mktsCYP num_mktsECA
+                            top_10_mkts   ->   top_10_mktsCYP top_10_mktsECA
+-----------------------------------------------------------------------------
+
+.         export excel using "$RES//`iso'//statistics.xlsx", sheet("Top 10 Mkts")  sheetreplace firstrow(variables) nolabel 
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//CYP//statistics.xlsx saved
+
+. restore
+
+. 
+. 
+. ********************************************************************************
+. ********************************************************************************
+. ********************************************************************************
+. 
+. preserve
+
+. 
+.         keep if region_o == "$reg_s" | region_o == "`iso'"
+(62,541 observations deleted)
+
+. 
+.         joinby iso_d year using "$RES//`iso'//temp/eu_destin", unmatched(both)
+
+.         tab _m
+
+                       _merge |      Freq.     Percent        Cum.
+------------------------------+-----------------------------------
+           only in using data |      3,665        3.83        3.83
+both in master and using data |     91,962       96.17      100.00
+------------------------------+-----------------------------------
+                        Total |     95,627      100.00
+
+.         drop if _m == 2
+(3,665 observations deleted)
+
+. 
+.         
+. ********************************************************************************        
+. 
+. if "$EU_aggregate" =="YES" {
+. 
+.         replace iso_d = "EU" if eu_d == 1
+(16,729 real changes made)
+. 
+. }
+
+.  
+. ********************************************************************************
+.  
+. 
+. 
+. collapse (sum) v, by(region_o iso_d year)
+
+. 
+. bys year region_o: egen                 X = total(v)
+
+. 
+.                                   gen x_mkts_sh   =   v/X
+
+. 
+. gsort year region  -x_mkts_sh             
+
+.                                   
+. bys year region_o:  gen         rank      = _n                    
+
+. 
+. 
+. drop                                                    if rank >10
+(3,210 observations deleted)
+
+. export excel using "$RES//`iso'//statistics.xlsx", sheet("Top 10 Mkts_detail X")  sheetreplace firstrow(variables) nolabel 
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//CYP//statistics.xlsx saved
+
+. 
+. 
+. drop                                                    if rank >1
+(234 observations deleted)
+
+. collapse (mean) x_mkts_sh, by(year region_o iso_d)
+
+. reshape wide   x_mkts_sh, i(year iso_d) j(region_o) string
+(j = CYP ECA)
+
+Data                               Long   ->   Wide
+-----------------------------------------------------------------------------
+Number of observations               26   ->   13          
+Number of variables                   4   ->   4           
+j variable (2 values)          region_o   ->   (dropped)
+xij variables:
+                              x_mkts_sh   ->   x_mkts_shCYP x_mkts_shECA
+-----------------------------------------------------------------------------
+
+. export excel using "$RES//`iso'//statistics.xlsx", sheet("First Mkt X")  sheetreplace firstrow(variables) nolabel 
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//CYP//statistics.xlsx saved
+
+. restore
+
+. 
+. ********************************************************************************
+. ********************************************************************************
+. ********************************************************************************
+. ********************************************************************************
+. * Number of products EXPORTS
+. 
+. 
+. use  "$RES//`iso'//temp/trade_t_interv", clear
+
+. replace         region_o = "$reg_s" if region_o == "$reg_l"
+(67,524,905 real changes made)
+
+. keep    if      region_o =="$reg_s" 
+(58,889,638 observations deleted)
+
+. 
+. replace         region_o = iso_o                if iso_o        == "`iso'"
+(280,422 real changes made)
+
+. keep if         region_o == "$reg_s" | region_o         == "`iso'"
+(0 observations deleted)
+
+. 
+. ********************************************************************************
+. 
+. preserve
+
+.         collapse (sum) v, by(region_o iso_o k year)
+
+. 
+.         bys year iso_o: egen num_products = nvals(k)
+
+.         bys year iso_o: egen                    X = total(v)
+
+. 
+.                                           gen x_prod_sh   =   v/X
+
+. 
+.         gsort year iso_o  -x_prod_sh              
+
+.                                           
+.         bys year iso_o:  gen    rank      = _n                    
+
+.          
+.         replace x_prod_sh = .                                                   if rank >10
+(2,442,941 real changes made, 2,442,941 to missing)
+
+. 
+. cap drop if x_prod_sh == .
+
+.                         
+.         bys year iso_o:  egen top_10_prod  = total(x_prod_sh)
+
+. 
+.         collapse (mean) num_products  top_10_prod, by(region_o year) 
+
+. 
+.         reshape wide num_products  top_10_prod, i(year) j(region_o) string
+(j = CYP ECA)
+
+Data                               Long   ->   Wide
+-----------------------------------------------------------------------------
+Number of observations               26   ->   13          
+Number of variables                   4   ->   5           
+j variable (2 values)          region_o   ->   (dropped)
+xij variables:
+                           num_products   ->   num_productsCYP num_productsECA
+                            top_10_prod   ->   top_10_prodCYP top_10_prodECA
+-----------------------------------------------------------------------------
+
+.         export excel using "$RES//`iso'//statistics.xlsx", sheet("Top 10 product X cum share")  sheetreplace firstrow(variables) nolabel 
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//CYP//statistics.xlsx saved
+
+. restore
+
+. 
+. ********************************************************************************
+. ********************************************************************************
+.  
+. 
+. preserve
+
+.         collapse (sum) v, by(region_o k year)
+
+. 
+.         bys year region_o: egen                         X = total(v)
+
+. 
+.                                           gen x_prod_sh   =   v/X
+
+. 
+.         gsort year region  -x_prod_sh             
+
+.                                           
+.         bys year region:  gen   rank      = _n                    
+
+. 
+. 
+.         drop                                                    if rank >10
+(111,741 observations deleted)
+
+.         export excel using "$RES//`iso'//statistics.xlsx", sheet("Top 10 products X")  sheetreplace firstrow(variables) nolabel 
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//CYP//statistics.xlsx saved
+
+. 
+. 
+.         drop                                                    if rank >1
+(234 observations deleted)
+
+.         collapse (mean) x_prod_sh, by(year region_o k)
+
+.         reshape wide   x_prod_sh, i(year k) j(region_o) string
+(j = CYP ECA)
+
+Data                               Long   ->   Wide
+-----------------------------------------------------------------------------
+Number of observations               26   ->   20          
+Number of variables                   4   ->   4           
+j variable (2 values)          region_o   ->   (dropped)
+xij variables:
+                              x_prod_sh   ->   x_prod_shCYP x_prod_shECA
+-----------------------------------------------------------------------------
+
+.         export excel using "$RES//`iso'//statistics.xlsx", sheet("First product X share")  sheetreplace firstrow(variables) nolabel 
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//CYP//statistics.xlsx saved
+
+. restore
+
+. 
+. 
+. ********************************************************************************
+. ********************************************************************************
+. ********************************************************************************
+. ********************************************************************************
+. * Number of products IMPORTS
+. 
+. 
+. use  "$RES//`iso'//temp/trade_t_interv", clear
+
+. replace         region_d = "$reg_s" if region_d == "$reg_l"
+(54,889,028 real changes made)
+
+. keep    if      region_d =="$reg_s" 
+(71,525,515 observations deleted)
+
+. 
+. replace         region_d = iso_d                if iso_d        == "`iso'"
+(760,067 real changes made)
+
+. keep if         region_d == "$reg_s" | region_d         == "`iso'"
+(0 observations deleted)
+
+. 
+. ********************************************************************************
+. 
+. preserve
+
+.         collapse (sum) v, by(region_d iso_d k year)
+
+. 
+.         bys year iso_d: egen num_products = nvals(k)
+
+.         bys year iso_d: egen                    M = total(v)
+
+. 
+.                                           gen m_prod_sh   =   v/M
+
+. 
+.         gsort year iso_d  -m_prod_sh              
+
+.                                           
+.         bys year iso_d:  gen    rank      = _n                    
+
+.          
+.         replace m_prod_sh = .                                                   if rank >10
+(2,846,051 real changes made, 2,846,051 to missing)
+
+. 
+. cap drop if m_prod_sh == .
+
+.                         
+.         bys year iso_d:  egen top_10_prod  = total(m_prod_sh)
+
+. 
+.         collapse (mean) num_products  top_10_prod, by(region_d year) 
+
+. 
+.         reshape wide num_products  top_10_prod, i(year) j(region_d) string
+(j = CYP ECA)
+
+Data                               Long   ->   Wide
+-----------------------------------------------------------------------------
+Number of observations               26   ->   13          
+Number of variables                   4   ->   5           
+j variable (2 values)          region_d   ->   (dropped)
+xij variables:
+                           num_products   ->   num_productsCYP num_productsECA
+                            top_10_prod   ->   top_10_prodCYP top_10_prodECA
+-----------------------------------------------------------------------------
+
+.         export excel using "$RES//`iso'//statistics.xlsx", sheet("Top 10 product M cum share")  sheetreplace firstrow(variables) nolabel 
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//CYP//statistics.xlsx saved
+
+. restore
+
+. 
+. ********************************************************************************
+. ********************************************************************************
+. 
+. preserve
+
+.         collapse (sum) v, by(region_d k year)
+
+. 
+.         bys year region_d: egen                         M = total(v)
+
+. 
+.                                           gen m_prod_sh   =   v/M
+
+. 
+.         gsort year region  -m_prod_sh             
+
+.                                           
+.         bys year region:  gen   rank      = _n                    
+
+. 
+. 
+.         drop                                                    if rank >10
+(123,348 observations deleted)
+
+.         export excel using "$RES//`iso'//statistics.xlsx", sheet("Top 10 products M")  sheetreplace firstrow(variables) nolabel 
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//CYP//statistics.xlsx saved
+
+. 
+. 
+.         drop                                                    if rank >1
+(234 observations deleted)
+
+.         collapse (mean) m_prod_sh, by(year region_d k)
+
+.         reshape wide   m_prod_sh, i(year k) j(region_d) string
+(j = CYP ECA)
+
+Data                               Long   ->   Wide
+-----------------------------------------------------------------------------
+Number of observations               26   ->   26          
+Number of variables                   4   ->   4           
+j variable (2 values)          region_d   ->   (dropped)
+xij variables:
+                              m_prod_sh   ->   m_prod_shCYP m_prod_shECA
+-----------------------------------------------------------------------------
+
+.         export excel using "$RES//`iso'//statistics.xlsx", sheet("First product M share")  sheetreplace firstrow(variables) nolabel 
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//CYP//statistics.xlsx saved
+
+. restore
+
+. ********************************************************************************
+. ********************************************************************************
+. ********************************************************************************
+. * Structural RCA: Competitiveness Ladder: Cross Section 2018
+.  
+. use "$RES//`iso'//temp/trade_t_interv", clear
+
+. 
+. keep if iso_o == "`iso'"
+(126,134,121 observations deleted)
+
+. 
+. collapse (sum) v, by(year k)
+
+. 
+. 
+. ********************************************************************************
+. ********************************************************************************
+. 
+. preserve
+
+.         keep if year == $ldate_bg
+(42,202 observations deleted)
+
+.         bys k: keep if _n ==1
+(0 observations deleted)
+
+.         keep k
+
+.         save "$RES//`iso'//k_list_`=$ldate_bg'", replace
+(file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//CYP//k_list_2022.dta not found)
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//CYP//k_list_2022.dta saved
+
+. restore
+
+. 
+. ********************************************************************************
+. 
+. preserve
+
+.         keep if year == $ldate_bg | year == $ldate_bg1
+(37,940 observations deleted)
+
+.         bys k:  gen obs = _N
+
+. 
+.         keep if obs == 2                
+(620 observations deleted)
+
+.         bys k: keep if _n ==1
+(3,883 observations deleted)
+
+.         keep k
+
+.         save "$RES//`iso'//k_list_`=$ldate_bg'_`=$ldate_bg1'", replace
+(file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//CYP//k_list_2022_2015.dta not found)
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//CYP//k_list_2022_2015.dta saved
+
+. restore
+
+. 
+. preserve
+
+.         keep if year == $ldate_bg | year == $ldate_bg1 | year ==  $ldate_bg2
+(34,849 observations deleted)
+
+.         bys k:  gen obs = _N
+
+. 
+.         keep if obs >= 2
+(485 observations deleted)
+
+.         bys k: keep if _n ==1
+(6,909 observations deleted)
+
+.         keep k
+
+.         save "$RES//`iso'//k_list_`=$ldate_bg'_`=$ldate_bg1'_`=$ldate_bg2'", replace
+(file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//CYP//k_list_2022_2015_2010.dta not found)
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//CYP//k_list_2022_2015_2010.dta saved
+
+. restore
+
+. 
+. ********************************************************************************
+. ********************************************************************************
+. use "$RES//`iso'//temp/trade_baci_cty", clear
+
+. 
+. keep if   t  >= $fdate_bg
+(0 observations deleted)
+
+. 
+. merge m:1 k using               "$RES//`iso'//k_list_`=$ldate_bg'_`=$ldate_bg1'"

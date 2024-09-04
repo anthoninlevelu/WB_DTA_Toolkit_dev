@@ -1,0 +1,1585 @@
+
+. 
+. 
+. ********************************************************************************
+. ********************************************************************************
+. ********************************************************************************
+. 
+. use "$RES//`iso'//temp/trade_baci_cty", clear
+
+. 
+. rename t year
+
+. 
+. ********************************************************************************
+. * Select exported products 
+. 
+. preserve
+
+.     
+.         keep if year >= $ldate_bg1
+(107,594,443 observations deleted)
+
+.         
+.         keep if iso_o == "`iso'"
+(77,448,310 observations deleted)
+
+.         
+.         collapse (sum) v , by(iso_o k year)
+
+.         keep if v >= 100
+(986 observations deleted)
+
+. 
+.         bys     k: keep if _n ==1
+(33,442 observations deleted)
+
+.         keep    k
+
+.         save    "$RES//`iso'//temp/k_list_X", replace
+(file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//DEU//temp/k_list_X.dta not found)
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//DEU//temp/k_list_X.dta saved
+
+. restore
+
+. 
+. 
+. merge   m:1             k       using   "$RES//`iso'//temp/k_list_X"
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                     1,379,331
+        from master                 1,379,331  (_merge==1)
+        from using                          0  (_merge==2)
+
+    Matched                       186,748,100  (_merge==3)
+    -----------------------------------------
+
+. 
+. keep    if _m == 3
+(1,379,331 observations deleted)
+
+. drop    _m
+
+. 
+. 
+. ********************************************************************************
+. ********************************************************************************
+. * Select sample for gravity estimation: using appropriate UN correspondance 
+. if "$baci_version"        == "BACI_HS02_V202401b" {
+. preserve
+. import excel "$DATA/class/HS2012-17-BEC5_08_Nov_2018.xlsx", sheet("HS12BEC5") firstrow clear
+(30 vars, 5,205 obs)
+.  keep HS6 BEC5EndUse BEC4ENDUSE BEC4INT BEC4CONS BEC4CAP
+.  destring BEC4INT , replace force
+BEC4INT: all characters numeric; replaced as double
+(14 missing values generated)
+.  destring BEC4CONS, replace force
+BEC4CONS: all characters numeric; replaced as double
+(14 missing values generated)
+.  destring BEC4CAP , replace force 
+BEC4CAP: all characters numeric; replaced as double
+(14 missing values generated)
+.  duplicates drop 
+
+Duplicates in terms of all variables
+
+(0 observations are duplicates)
+.  save   "$TEMP/k_BEC4", replace
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/1.data/temp/k_BEC4.dta saved
+. 
+. ********************************************************************************
+. ******************************************************************************** 
+. 
+. import excel "$DATA/class/HS 2012 to HS 2002 Correlation and conversion tables.xls", sheet("Conversion HS 2012-HS 2002") cellrange(C7:D5213) firstrow clear
+(2 vars, 5,206 obs)
+. rename HS2012 HS6
+. merge 1:1 HS6 using "$TEMP/k_BEC4"
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                             1
+        from master                         1  (_merge==1)
+        from using                          0  (_merge==2)
+
+    Matched                             5,205  (_merge==3)
+    -----------------------------------------
+. keep if _m == 3
+(1 observation deleted)
+. drop _m
+. 
+. rename HS2002 k
+. destring k, replace force
+k: all characters numeric; replaced as long
+. cap drop if k == .
+. 
+. collapse (mean) BEC4INT BEC4CONS BEC4CAP, by(k)
+. 
+. gen stade3 = "I" if ((BEC4INT + BEC4CAP) >  BEC4CONS )
+(1,256 missing values generated)
+. 
+. keep stade3 k
+. save    "$TEMP/k_BEC", replace
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/1.data/temp/k_BEC.dta saved
+. restore
+. }
+
+. 
+. ********************************************************************************
+. ********************************************************************************
+. 
+. 
+. merge   m:1     k                       using   "$TEMP/k_BEC"
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                     1,041,805
+        from master                 1,041,760  (_merge==1)
+        from using                         45  (_merge==2)
+
+    Matched                       185,706,340  (_merge==3)
+    -----------------------------------------
+
+. drop if _m == 2
+(45 observations deleted)
+
+. drop _m
+
+. 
+. preserve        
+
+.         keep if stade3 == "I"
+(62,038,685 observations deleted)
+
+.         collapse (sum) v, by(iso_o iso_d year)
+
+.         compress
+  (0 bytes saved)
+
+.         save "$RES//`iso'//temp/est_sample_imrt_int_k", replace
+(file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//DEU//temp/est_sample_imrt_int_k.dta not found)
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//DEU//temp/est_sample_imrt_int_k.dta saved
+
+. restore
+
+. 
+. collapse (sum) v, by(iso_o iso_d year)
+
+. compress
+  (0 bytes saved)
+
+. 
+. 
+. save "$RES//`iso'//temp/est_sample_imrt", replace
+(file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//DEU//temp/est_sample_imrt.dta not found)
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//DEU//temp/est_sample_imrt.dta saved
+
+.         
+. ********************************************************************************
+. ********************************************************************************
+. * 1a) Inward MRT - all products
+. 
+. use "$RES//`iso'//temp/est_sample_imrt", replace
+
+. 
+. 
+. ********************************************************************************
+. do      "$PROG_rta_stat/p1b_square"
+
+. 
+. ********************************************************************************
+. 
+. preserve
+
+.         bys year: keep if _n==1
+(439,907 observations deleted)
+
+.         keep year
+
+.         save "$TEMP\square", replace
+(file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/1.data/temp\square.dta not found)
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/1.data/temp\square.dta saved
+
+. restore
+
+. 
+. 
+. preserve
+
+.         bys     iso_o: keep if _n==1
+(439,765 observations deleted)
+
+.         keep    iso_o
+
+.         cross using "$TEMP\square.dta"
+
+.         save "$TEMP\square.dta", replace
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/1.data/temp\square.dta saved
+
+. restore
+
+. 
+. 
+. preserve
+
+.         bys     iso_d: keep if _n==1
+(439,765 observations deleted)
+
+.         keep    iso_d
+
+.         cross   using "$TEMP\square.dta"
+
+.         save    "$TEMP\square.dta", replace
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/1.data/temp\square.dta saved
+
+. restore
+
+. 
+. merge 1:1 year iso_o iso_d using "$TEMP\square.dta", nogenerate
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                       118,021
+        from master                         0  
+        from using                    118,021  
+
+    Matched                           439,928  
+    -----------------------------------------
+
+. cap erase        "$TEMP\square.dta"
+
+. 
+. drop if iso_o == iso_d
+(3,423 observations deleted)
+
+. replace v = 0 if v==.
+(114,598 real changes made)
+
+. 
+. ********************************************************************************
+. 
+end of do-file
+
+. ********************************************************************************
+. 
+. merge m:1 iso_o iso_d year using "$RES//`iso'//temp/gravity_temp"
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                       366,053
+        from master                     8,736  (_merge==1)
+        from using                    357,317  (_merge==2)
+
+    Matched                           545,790  (_merge==3)
+    -----------------------------------------
+
+. drop if _m == 2
+(357,317 observations deleted)
+
+. drop _m
+
+. 
+. 
+. 
+. cap drop i
+
+. cap drop j
+
+. 
+. egen i  = group(iso_o)
+
+. egen j  = group(iso_d)
+
+. 
+. egen it = group(iso_o year)
+
+. egen jt = group(iso_d year)
+
+. 
+. 
+. bys jt: egen tx = total(v)
+
+. 
+. gen v_sh            =    v / tx
+(4,374 missing values generated)
+
+. gen ldist                       = ln( $dist )
+(8,736 missing values generated)
+
+. gen lv              = ln(v)
+(114,598 missing values generated)
+
+. 
+. ********************************************************************************
+. ********************************************************************************
+. * PPML value
+. 
+. preserve
+
+.         ppmlhdfe v   $covar  ,  absorb(   ppml_d_jt = jt ppml_d_it = it)  d maxiter(1000) acceleration(steep)
+warning: dependent variable takes very low values after standardizing (1.7763e-10)
+Iteration 1:   deviance = 3.2392e+11  eps = .         iters = 6    tol = 1.0e-04  min(eta) =  -5.33  P   
+Iteration 2:   deviance = 1.7998e+11  eps = 8.00e-01  iters = 4    tol = 1.0e-04  min(eta) =  -6.99      
+Iteration 3:   deviance = 1.4354e+11  eps = 2.54e-01  iters = 4    tol = 1.0e-04  min(eta) =  -8.74      
+Iteration 4:   deviance = 1.3497e+11  eps = 6.35e-02  iters = 4    tol = 1.0e-04  min(eta) = -10.53      
+Iteration 5:   deviance = 1.3327e+11  eps = 1.27e-02  iters = 3    tol = 1.0e-04  min(eta) = -12.25      
+Iteration 6:   deviance = 1.3298e+11  eps = 2.17e-03  iters = 3    tol = 1.0e-04  min(eta) = -13.78      
+Iteration 7:   deviance = 1.3293e+11  eps = 3.26e-04  iters = 2    tol = 1.0e-04  min(eta) = -15.45      
+Iteration 8:   deviance = 1.3293e+11  eps = 4.61e-05  iters = 2    tol = 1.0e-04  min(eta) = -16.97      
+Iteration 9:   deviance = 1.3293e+11  eps = 6.33e-06  iters = 2    tol = 1.0e-05  min(eta) = -17.95      
+Iteration 10:  deviance = 1.3293e+11  eps = 6.34e-07  iters = 2    tol = 1.0e-06  min(eta) = -18.45   S  
+Iteration 11:  deviance = 1.3293e+11  eps = 2.60e-08  iters = 2    tol = 1.0e-07  min(eta) = -18.54   S  
+Iteration 12:  deviance = 1.3293e+11  eps = 3.54e-10  iters = 2    tol = 1.0e-08  min(eta) = -18.60   S  
+Iteration 13:  deviance = 1.3293e+11  eps = 6.70e-13  iters = 3    tol = 1.0e-09  min(eta) = -18.60   S O
+------------------------------------------------------------------------------------------------------------
+(legend: p: exact partial-out   s: exact solver   h: step-halving   o: epsilon below tolerance)
+Converged in 13 iterations and 39 HDFE sub-iterations (tol = 1.0e-08)
+
+HDFE PPML regression                              No. of obs      =    545,790
+Absorbing 2 HDFE groups                           Residual df     =    539,014
+                                                  Wald chi2(5)    =   38151.16
+Deviance             =  1.32928e+11               Prob > chi2     =     0.0000
+Log pseudolikelihood = -6.64661e+10               Pseudo R2       =     0.9341
+------------------------------------------------------------------------------
+             |               Robust
+           v | Coefficient  std. err.      z    P>|z|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+       ldist |   -.683273   .0068146  -100.27   0.000    -.6966294   -.6699167
+     fta_wto |   .3245801   .0141587    22.92   0.000     .2968296    .3523306
+      contig |   .4092439   .0152328    26.87   0.000     .3793881    .4390997
+      comcol |   .5868475   .0325565    18.03   0.000      .523038     .650657
+         lpn |   .0739134   .0298864     2.47   0.013     .0153371    .1324896
+       _cons |    21.4174   .0611249   350.39   0.000      21.2976    21.53721
+------------------------------------------------------------------------------
+
+Absorbed degrees of freedom:
+-----------------------------------------------------+
+ Absorbed FE | Categories  - Redundant  = Num. Coefs |
+-------------+---------------------------------------|
+          jt |      3396           0        3396     |
+          it |      3396          21        3375     |
+-----------------------------------------------------+
+
+. 
+.         replace   ppml_d_jt         =  exp(ppml_d_jt)
+(545,790 real changes made)
+
+.     drop if   ppml_d_jt         == .
+(8,736 observations deleted)
+
+. 
+.         bys year: egen max_rca          =  max(ppml_d_jt)
+
+.         gen             norm_IMRT           =  ppml_d_jt/max_rca
+
+.         
+.         
+.      replace norm_IMRT          =  .   if norm_IMRT <= 0.000001
+(0 real changes made)
+
+.      drop if norm_IMRT          == .
+(0 observations deleted)
+
+.     
+.         keep if year >= $ldate_bg1
+(337,778 observations deleted)
+
+.         
+.         collapse (mean)    norm_IMRT  , by(iso_d)
+
+.         rename iso_d iso3
+
+.         merge m:1 iso3 using "$DATA/cty/TP_FAO_cty_year", keepusing(iso3)
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                             4
+        from master                         0  (_merge==1)
+        from using                          4  (_merge==2)
+
+    Matched                               162  (_merge==3)
+    -----------------------------------------
+
+.         keep    if _m == 3
+(4 observations deleted)
+
+.         drop    _m 
+
+. 
+.         gsort   -norm
+
+.         gen             rank = _n
+
+.         drop    norm
+
+.         keep    if rank <= 30
+(132 observations deleted)
+
+.         
+.         gen             estimation      = "PPML value"
+
+.         gen             item            = "demand"
+
+.         save "$RES//`iso'//temp/norm_IMRT_ppml", replace
+(file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//DEU//temp/norm_IMRT_ppml.dta not found)
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//DEU//temp/norm_IMRT_ppml.dta saved
+
+. restore
+
+. 
+. 
+. ********************************************************************************
+. ********************************************************************************
+. * 1b) Inward MRT - intermediate products
+. 
+. 
+. use "$RES//`iso'//temp/est_sample_imrt_int_k", replace
+
+. 
+. 
+. ********************************************************************************
+. do      "$PROG_rta_stat/p1b_square"
+
+. 
+. ********************************************************************************
+. 
+. preserve
+
+.         bys year: keep if _n==1
+(413,710 observations deleted)
+
+.         keep year
+
+.         save "$TEMP\square", replace
+(file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/1.data/temp\square.dta not found)
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/1.data/temp\square.dta saved
+
+. restore
+
+. 
+. 
+. preserve
+
+.         bys     iso_o: keep if _n==1
+(413,568 observations deleted)
+
+.         keep    iso_o
+
+.         cross using "$TEMP\square.dta"
+
+.         save "$TEMP\square.dta", replace
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/1.data/temp\square.dta saved
+
+. restore
+
+. 
+. 
+. preserve
+
+.         bys     iso_d: keep if _n==1
+(413,568 observations deleted)
+
+.         keep    iso_d
+
+.         cross   using "$TEMP\square.dta"
+
+.         save    "$TEMP\square.dta", replace
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/1.data/temp\square.dta saved
+
+. restore
+
+. 
+. merge 1:1 year iso_o iso_d using "$TEMP\square.dta", nogenerate
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                       144,218
+        from master                         0  
+        from using                    144,218  
+
+    Matched                           413,731  
+    -----------------------------------------
+
+. cap erase        "$TEMP\square.dta"
+
+. 
+. drop if iso_o == iso_d
+(3,423 observations deleted)
+
+. replace v = 0 if v==.
+(140,795 real changes made)
+
+. 
+. ********************************************************************************
+. 
+end of do-file
+
+. ********************************************************************************
+. 
+. merge m:1 iso_o iso_d year using "$RES//`iso'//temp/gravity_temp"
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                       366,053
+        from master                     8,736  (_merge==1)
+        from using                    357,317  (_merge==2)
+
+    Matched                           545,790  (_merge==3)
+    -----------------------------------------
+
+. drop if _m == 2
+(357,317 observations deleted)
+
+. drop _m
+
+. 
+. 
+. 
+. cap drop i
+
+. cap drop j
+
+. 
+. egen i  = group(iso_o)
+
+. egen j  = group(iso_d)
+
+. 
+. egen it = group(iso_o year)
+
+. egen jt = group(iso_d year)
+
+. 
+. 
+. bys jt: egen tx = total(v)
+
+. 
+. gen v_sh            =    v / tx
+(4,374 missing values generated)
+
+. gen ldist                       = ln( $dist )
+(8,736 missing values generated)
+
+. gen lv              = ln(v)
+(140,795 missing values generated)
+
+. 
+. ********************************************************************************
+. ********************************************************************************
+. * PPML value
+. 
+. preserve
+
+.         ppmlhdfe v   $covar  ,  absorb(   ppml_d_jt = jt ppml_d_it = it)  d maxiter(1000) acceleration(steep)
+warning: dependent variable takes very low values after standardizing (2.6080e-10)
+Iteration 1:   deviance = 2.4403e+11  eps = .         iters = 6    tol = 1.0e-04  min(eta) =  -5.31  P   
+Iteration 2:   deviance = 1.3936e+11  eps = 7.51e-01  iters = 4    tol = 1.0e-04  min(eta) =  -6.98      
+Iteration 3:   deviance = 1.1248e+11  eps = 2.39e-01  iters = 4    tol = 1.0e-04  min(eta) =  -8.79      
+Iteration 4:   deviance = 1.0595e+11  eps = 6.17e-02  iters = 4    tol = 1.0e-04  min(eta) = -10.63      
+Iteration 5:   deviance = 1.0459e+11  eps = 1.30e-02  iters = 3    tol = 1.0e-04  min(eta) = -12.41      
+Iteration 6:   deviance = 1.0434e+11  eps = 2.37e-03  iters = 3    tol = 1.0e-04  min(eta) = -14.08      
+Iteration 7:   deviance = 1.0430e+11  eps = 4.00e-04  iters = 2    tol = 1.0e-04  min(eta) = -15.53      
+Iteration 8:   deviance = 1.0429e+11  eps = 6.77e-05  iters = 2    tol = 1.0e-04  min(eta) = -17.10      
+Iteration 9:   deviance = 1.0429e+11  eps = 1.16e-05  iters = 2    tol = 1.0e-05  min(eta) = -18.31      
+Iteration 10:  deviance = 1.0429e+11  eps = 1.67e-06  iters = 1    tol = 1.0e-05  min(eta) = -18.95   S  
+Iteration 11:  deviance = 1.0429e+11  eps = 1.56e-07  iters = 1    tol = 1.0e-06  min(eta) = -19.15   S  
+Iteration 12:  deviance = 1.0429e+11  eps = 5.57e-09  iters = 2    tol = 1.0e-07  min(eta) = -19.17   S  
+Iteration 13:  deviance = 1.0429e+11  eps = 2.57e-11  iters = 3    tol = 1.0e-08  min(eta) = -19.17   S  
+Iteration 14:  deviance = 1.0429e+11  eps = 1.61e-15  iters = 2    tol = 1.0e-09  min(eta) = -19.17   S O
+------------------------------------------------------------------------------------------------------------
+(legend: p: exact partial-out   s: exact solver   h: step-halving   o: epsilon below tolerance)
+Converged in 14 iterations and 39 HDFE sub-iterations (tol = 1.0e-08)
+
+HDFE PPML regression                              No. of obs      =    545,790
+Absorbing 2 HDFE groups                           Residual df     =    539,014
+                                                  Wald chi2(5)    =   35080.93
+Deviance             =  1.04292e+11               Prob > chi2     =     0.0000
+Log pseudolikelihood = -5.21482e+10               Pseudo R2       =     0.9258
+------------------------------------------------------------------------------
+             |               Robust
+           v | Coefficient  std. err.      z    P>|z|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+       ldist |  -.6725749   .0072875   -92.29   0.000    -.6868582   -.6582917
+     fta_wto |   .3563695   .0153252    23.25   0.000     .3263327    .3864062
+      contig |   .4302104   .0162069    26.54   0.000     .3984454    .4619753
+      comcol |   .5489203   .0355276    15.45   0.000     .4792875    .6185532
+         lpn |   .0985527   .0307275     3.21   0.001     .0383279    .1587775
+       _cons |   20.96199   .0653962   320.54   0.000     20.83381    21.09016
+------------------------------------------------------------------------------
+
+Absorbed degrees of freedom:
+-----------------------------------------------------+
+ Absorbed FE | Categories  - Redundant  = Num. Coefs |
+-------------+---------------------------------------|
+          jt |      3396           0        3396     |
+          it |      3396          21        3375     |
+-----------------------------------------------------+
+
+. 
+.         replace   ppml_d_jt           = exp(ppml_d_jt)
+(545,790 real changes made)
+
+.     drop if   ppml_d_jt           == .
+(8,736 observations deleted)
+
+.         bys year: egen max_rca            = max(ppml_d_jt)
+
+.                   gen           norm_IMRT = ppml_d_jt/max_rca
+
+.         
+.             replace norm_IMRT          =  .   if norm_IMRT <= 0.000001
+(0 real changes made)
+
+.        drop if norm_IMRT          == .
+(0 observations deleted)
+
+. 
+.         keep if year >= $ldate_bg1
+(337,778 observations deleted)
+
+.         
+.         collapse (mean)    norm_IMRT  , by(iso_d)
+
+.         rename iso_d iso3
+
+. 
+.         merge m:1 iso3 using "$DATA/cty/TP_FAO_cty_year", keepusing(iso3)
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                             4
+        from master                         0  (_merge==1)
+        from using                          4  (_merge==2)
+
+    Matched                               162  (_merge==3)
+    -----------------------------------------
+
+.         keep    if _m == 3
+(4 observations deleted)
+
+.         drop    _m 
+
+. 
+.         gsort   -norm
+
+.         gen             rank = _n
+
+.         drop    norm
+
+.         keep    if rank <= 30
+(132 observations deleted)
+
+.         
+.         gen             estimation      = "PPML value"
+
+.         gen             item            = "demand int good"
+
+.         save "$RES//`iso'//temp/norm_IMRT_int_ppml", replace
+(file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//DEU//temp/norm_IMRT_int_ppml.dta not found)
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//DEU//temp/norm_IMRT_int_ppml.dta saved
+
+. restore
+
+. 
+. 
+. ********************************************************************************
+. ********************************************************************************
+. * 2) CTY IMPORT SIDE:
+. 
+. use "$RES//`iso'//temp/trade_baci_cty", clear
+
+. 
+. rename t year
+
+. 
+. 
+. preserve
+
+. 
+.         keep if year >= $ldate_bg1
+(107,594,443 observations deleted)
+
+. 
+. 
+.         keep if iso_d == "`iso'"
+(79,027,696 observations deleted)
+
+.         
+.         collapse (sum) v , by(iso_d k  year)
+
+.         keep if v >= 100
+(804 observations deleted)
+
+.         
+.         bys     k: keep if _n ==1
+(33,317 observations deleted)
+
+.         keep    k
+
+.         save    "$RES//`iso'//temp/k_list_M", replace
+(file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//DEU//temp/k_list_M.dta not found)
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//DEU//temp/k_list_M.dta saved
+
+. restore
+
+. 
+. 
+. merge   m:1             k       using   "$RES//`iso'//temp/k_list_M"
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                     1,461,533
+        from master                 1,461,533  (_merge==1)
+        from using                          0  (_merge==2)
+
+    Matched                       186,665,898  (_merge==3)
+    -----------------------------------------
+
+. 
+. keep    if _m == 3
+(1,461,533 observations deleted)
+
+. drop    _m
+
+. 
+. ********************************************************************************
+. ********************************************************************************
+. * Select sample for gravity estimation: using appropriate UN correspondance 
+. if "$baci_version"        == "BACI_HS02_V202401b" {
+. preserve
+. import excel "$DATA/class/HS2012-17-BEC5_08_Nov_2018.xlsx", sheet("HS12BEC5") firstrow clear
+(30 vars, 5,205 obs)
+.  keep HS6 BEC5EndUse BEC4ENDUSE BEC4INT BEC4CONS BEC4CAP
+.  destring BEC4INT , replace force
+BEC4INT: all characters numeric; replaced as double
+(14 missing values generated)
+.  destring BEC4CONS, replace force
+BEC4CONS: all characters numeric; replaced as double
+(14 missing values generated)
+.  destring BEC4CAP , replace force 
+BEC4CAP: all characters numeric; replaced as double
+(14 missing values generated)
+.  duplicates drop 
+
+Duplicates in terms of all variables
+
+(0 observations are duplicates)
+.  save   "$TEMP/k_BEC4", replace
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/1.data/temp/k_BEC4.dta saved
+. 
+. ********************************************************************************
+. ******************************************************************************** 
+. 
+. import excel "$DATA/class/HS 2012 to HS 2002 Correlation and conversion tables.xls", sheet("Conversion HS 2012-HS 2002") cellrange(C7:D5213) firstrow clear
+(2 vars, 5,206 obs)
+. rename HS2012 HS6
+. merge 1:1 HS6 using "$TEMP/k_BEC4"
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                             1
+        from master                         1  (_merge==1)
+        from using                          0  (_merge==2)
+
+    Matched                             5,205  (_merge==3)
+    -----------------------------------------
+. keep if _m == 3
+(1 observation deleted)
+. drop _m
+. 
+. rename HS2002 k
+. destring k, replace force
+k: all characters numeric; replaced as long
+. cap drop if k == .
+. 
+. collapse (mean) BEC4INT BEC4CONS BEC4CAP, by(k)
+. 
+. gen stade3 = "I" if ((BEC4INT + BEC4CAP) >  BEC4CONS )
+(1,256 missing values generated)
+. 
+. keep stade3 k
+. save    "$TEMP/k_BEC", replace
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/1.data/temp/k_BEC.dta saved
+. restore
+. }
+
+. 
+. ********************************************************************************
+. ******************************************************************************** 
+. 
+. merge   m:1     k                       using   "$TEMP/k_BEC"
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                       966,493
+        from master                   966,447  (_merge==1)
+        from using                         46  (_merge==2)
+
+    Matched                       185,699,451  (_merge==3)
+    -----------------------------------------
+
+. drop if _m == 2
+(46 observations deleted)
+
+. drop _m 
+
+. 
+. 
+. preserve        
+
+.         keep if stade3 == "I"
+(61,988,361 observations deleted)
+
+.         collapse (sum) v, by(iso_o iso_d year)
+
+.         compress
+  (0 bytes saved)
+
+.         save "$RES//`iso'//temp/est_sample_omrt_int_k", replace
+(file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//DEU//temp/est_sample_omrt_int_k.dta not found)
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//DEU//temp/est_sample_omrt_int_k.dta saved
+
+. restore
+
+. 
+. collapse (sum) v, by(iso_o iso_d year)
+
+. compress
+  (0 bytes saved)
+
+. 
+.         save "$RES//`iso'//temp/est_sample_omrt", replace
+(file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//DEU//temp/est_sample_omrt.dta not found)
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//DEU//temp/est_sample_omrt.dta saved
+
+.         
+. ********************************************************************************
+. ********************************************************************************
+. * 1a) Inward MRT - all products
+. 
+. use "$RES//`iso'//temp/est_sample_omrt", replace
+
+. 
+. 
+. ********************************************************************************
+. do      "$PROG_rta_stat/p1b_square"
+
+. 
+. ********************************************************************************
+. 
+. preserve
+
+.         bys year: keep if _n==1
+(439,920 observations deleted)
+
+.         keep year
+
+.         save "$TEMP\square", replace
+(file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/1.data/temp\square.dta not found)
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/1.data/temp\square.dta saved
+
+. restore
+
+. 
+. 
+. preserve
+
+.         bys     iso_o: keep if _n==1
+(439,778 observations deleted)
+
+.         keep    iso_o
+
+.         cross using "$TEMP\square.dta"
+
+.         save "$TEMP\square.dta", replace
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/1.data/temp\square.dta saved
+
+. restore
+
+. 
+. 
+. preserve
+
+.         bys     iso_d: keep if _n==1
+(439,778 observations deleted)
+
+.         keep    iso_d
+
+.         cross   using "$TEMP\square.dta"
+
+.         save    "$TEMP\square.dta", replace
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/1.data/temp\square.dta saved
+
+. restore
+
+. 
+. merge 1:1 year iso_o iso_d using "$TEMP\square.dta", nogenerate
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                       118,008
+        from master                         0  
+        from using                    118,008  
+
+    Matched                           439,941  
+    -----------------------------------------
+
+. cap erase        "$TEMP\square.dta"
+
+. 
+. drop if iso_o == iso_d
+(3,423 observations deleted)
+
+. replace v = 0 if v==.
+(114,585 real changes made)
+
+. 
+. ********************************************************************************
+. 
+end of do-file
+
+. ********************************************************************************
+. 
+. 
+. merge m:1 iso_o iso_d year using "$RES//`iso'//temp/gravity_temp" 
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                       366,053
+        from master                     8,736  (_merge==1)
+        from using                    357,317  (_merge==2)
+
+    Matched                           545,790  (_merge==3)
+    -----------------------------------------
+
+. drop if _m == 2
+(357,317 observations deleted)
+
+. drop _m
+
+. 
+. 
+. 
+. cap drop i
+
+. cap drop j
+
+. 
+. egen i  = group(iso_o)
+
+. egen j  = group(iso_d)
+
+. 
+. egen it = group(iso_o year)
+
+. egen jt = group(iso_d year)
+
+. 
+. 
+. bys jt: egen tx = total(v)
+
+. 
+. gen v_sh            =    v / tx
+(4,374 missing values generated)
+
+. gen ldist                       = ln( $dist )
+(8,736 missing values generated)
+
+. gen lv              = ln(v)
+(114,585 missing values generated)
+
+. 
+. ********************************************************************************
+. ********************************************************************************
+. * PPML value
+. 
+. preserve
+
+.         ppmlhdfe v   $covar  ,  absorb(   ppml_d_jt = jt ppml_d_it = it)  d maxiter(1000) acceleration(steep)
+warning: dependent variable takes very low values after standardizing (1.7765e-10)
+Iteration 1:   deviance = 3.2391e+11  eps = .         iters = 6    tol = 1.0e-04  min(eta) =  -5.33  P   
+Iteration 2:   deviance = 1.7997e+11  eps = 8.00e-01  iters = 4    tol = 1.0e-04  min(eta) =  -6.99      
+Iteration 3:   deviance = 1.4352e+11  eps = 2.54e-01  iters = 4    tol = 1.0e-04  min(eta) =  -8.74      
+Iteration 4:   deviance = 1.3495e+11  eps = 6.35e-02  iters = 4    tol = 1.0e-04  min(eta) = -10.53      
+Iteration 5:   deviance = 1.3325e+11  eps = 1.27e-02  iters = 3    tol = 1.0e-04  min(eta) = -12.25      
+Iteration 6:   deviance = 1.3296e+11  eps = 2.16e-03  iters = 3    tol = 1.0e-04  min(eta) = -13.76      
+Iteration 7:   deviance = 1.3292e+11  eps = 3.21e-04  iters = 2    tol = 1.0e-04  min(eta) = -15.45      
+Iteration 8:   deviance = 1.3291e+11  eps = 4.52e-05  iters = 2    tol = 1.0e-04  min(eta) = -16.97      
+Iteration 9:   deviance = 1.3291e+11  eps = 6.29e-06  iters = 2    tol = 1.0e-05  min(eta) = -17.97      
+Iteration 10:  deviance = 1.3291e+11  eps = 6.36e-07  iters = 2    tol = 1.0e-06  min(eta) = -18.49   S  
+Iteration 11:  deviance = 1.3291e+11  eps = 2.62e-08  iters = 2    tol = 1.0e-07  min(eta) = -18.59   S  
+Iteration 12:  deviance = 1.3291e+11  eps = 3.55e-10  iters = 2    tol = 1.0e-08  min(eta) = -18.60   S  
+Iteration 13:  deviance = 1.3291e+11  eps = 6.71e-13  iters = 3    tol = 1.0e-09  min(eta) = -18.60   S O
+------------------------------------------------------------------------------------------------------------
+(legend: p: exact partial-out   s: exact solver   h: step-halving   o: epsilon below tolerance)
+Converged in 13 iterations and 39 HDFE sub-iterations (tol = 1.0e-08)
+
+HDFE PPML regression                              No. of obs      =    545,790
+Absorbing 2 HDFE groups                           Residual df     =    539,014
+                                                  Wald chi2(5)    =   38203.97
+Deviance             =  1.32914e+11               Prob > chi2     =     0.0000
+Log pseudolikelihood = -6.64593e+10               Pseudo R2       =     0.9341
+------------------------------------------------------------------------------
+             |               Robust
+           v | Coefficient  std. err.      z    P>|z|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+       ldist |  -.6833871   .0068092  -100.36   0.000    -.6967328   -.6700414
+     fta_wto |   .3245545   .0141548    22.93   0.000     .2968116    .3522973
+      contig |   .4089615   .0152263    26.86   0.000     .3791186    .4388045
+      comcol |   .5866677   .0325263    18.04   0.000     .5229172    .6504181
+         lpn |   .0745372   .0298824     2.49   0.013     .0159688    .1331056
+       _cons |   21.41837   .0610782   350.67   0.000     21.29866    21.53808
+------------------------------------------------------------------------------
+
+Absorbed degrees of freedom:
+-----------------------------------------------------+
+ Absorbed FE | Categories  - Redundant  = Num. Coefs |
+-------------+---------------------------------------|
+          jt |      3396           0        3396     |
+          it |      3396          21        3375     |
+-----------------------------------------------------+
+
+. 
+.         replace   ppml_d_it         = exp(ppml_d_it)
+(545,790 real changes made)
+
+.     drop if   ppml_d_it         == .
+(8,736 observations deleted)
+
+. 
+.         bys year: egen max_rca          = max(ppml_d_it)
+
+.                  gen  norm_IMRT     = ppml_d_it/max_rca
+
+.         
+.        replace norm_IMRT        =  .   if norm_IMRT <= 0.000001
+(0 real changes made)
+
+.        drop if norm_IMRT        == .
+(0 observations deleted)
+
+. 
+.         keep if year >= $ldate_bg1
+(337,778 observations deleted)
+
+.         
+.         collapse (mean)    norm_IMRT  , by(iso_o)
+
+.         rename iso_o iso3
+
+. 
+.         merge m:1 iso3 using "$DATA/cty/TP_FAO_cty_year", keepusing(iso3)
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                             4
+        from master                         0  (_merge==1)
+        from using                          4  (_merge==2)
+
+    Matched                               162  (_merge==3)
+    -----------------------------------------
+
+.         keep    if _m == 3
+(4 observations deleted)
+
+.         drop    _m 
+
+. 
+.         gsort   -norm
+
+.         gen             rank = _n
+
+.         drop    norm
+
+.         keep    if rank <= 30
+(132 observations deleted)
+
+.         
+.         gen             estimation      = "PPML value"
+
+.         gen             item            = "supply"
+
+.         save "$RES//`iso'//temp/norm_OMRT_ppml", replace
+(file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//DEU//temp/norm_OMRT_ppml.dta not found)
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//DEU//temp/norm_OMRT_ppml.dta saved
+
+. restore
+
+. 
+. ********************************************************************************
+. ********************************************************************************
+. * 1b) Inward MRT - intermediate products
+. 
+. use "$RES//`iso'//temp/est_sample_omrt_int_k", replace
+
+. 
+. 
+. ********************************************************************************
+. do      "$PROG_rta_stat/p1b_square"
+
+. 
+. ********************************************************************************
+. 
+. preserve
+
+.         bys year: keep if _n==1
+(413,734 observations deleted)
+
+.         keep year
+
+.         save "$TEMP\square", replace
+(file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/1.data/temp\square.dta not found)
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/1.data/temp\square.dta saved
+
+. restore
+
+. 
+. 
+. preserve
+
+.         bys     iso_o: keep if _n==1
+(413,592 observations deleted)
+
+.         keep    iso_o
+
+.         cross using "$TEMP\square.dta"
+
+.         save "$TEMP\square.dta", replace
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/1.data/temp\square.dta saved
+
+. restore
+
+. 
+. 
+. preserve
+
+.         bys     iso_d: keep if _n==1
+(413,592 observations deleted)
+
+.         keep    iso_d
+
+.         cross   using "$TEMP\square.dta"
+
+.         save    "$TEMP\square.dta", replace
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/1.data/temp\square.dta saved
+
+. restore
+
+. 
+. merge 1:1 year iso_o iso_d using "$TEMP\square.dta", nogenerate
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                       144,194
+        from master                         0  
+        from using                    144,194  
+
+    Matched                           413,755  
+    -----------------------------------------
+
+. cap erase        "$TEMP\square.dta"
+
+. 
+. drop if iso_o == iso_d
+(3,423 observations deleted)
+
+. replace v = 0 if v==.
+(140,771 real changes made)
+
+. 
+. ********************************************************************************
+. 
+end of do-file
+
+. ********************************************************************************
+. 
+. merge m:1 iso_o iso_d year using "$RES//`iso'//temp/gravity_temp"
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                       366,053
+        from master                     8,736  (_merge==1)
+        from using                    357,317  (_merge==2)
+
+    Matched                           545,790  (_merge==3)
+    -----------------------------------------
+
+. drop if _m == 2
+(357,317 observations deleted)
+
+. drop _m
+
+. 
+. 
+. 
+. cap drop i
+
+. cap drop j
+
+. 
+. egen i  = group(iso_o)
+
+. egen j  = group(iso_d)
+
+. 
+. egen it = group(iso_o year)
+
+. egen jt = group(iso_d year)
+
+. 
+. 
+. bys jt: egen tx = total(v)
+
+. 
+. gen v_sh            =    v / tx
+(4,374 missing values generated)
+
+. gen ldist                       = ln( $dist )
+(8,736 missing values generated)
+
+. gen lv              = ln(v)
+(140,771 missing values generated)
+
+. 
+. ********************************************************************************
+. ********************************************************************************
+. * PPML value
+. 
+. preserve
+
+.         ppmlhdfe v   $covar  ,  absorb(   ppml_d_jt = jt ppml_d_it = it)  d maxiter(1000) acceleration(steep)
+warning: dependent variable takes very low values after standardizing (2.6080e-10)
+Iteration 1:   deviance = 2.4409e+11  eps = .         iters = 5    tol = 1.0e-04  min(eta) =  -5.31  P   
+Iteration 2:   deviance = 1.3939e+11  eps = 7.51e-01  iters = 4    tol = 1.0e-04  min(eta) =  -6.98      
+Iteration 3:   deviance = 1.1251e+11  eps = 2.39e-01  iters = 4    tol = 1.0e-04  min(eta) =  -8.79      
+Iteration 4:   deviance = 1.0597e+11  eps = 6.17e-02  iters = 4    tol = 1.0e-04  min(eta) = -10.63      
+Iteration 5:   deviance = 1.0461e+11  eps = 1.30e-02  iters = 3    tol = 1.0e-04  min(eta) = -12.41      
+Iteration 6:   deviance = 1.0436e+11  eps = 2.38e-03  iters = 3    tol = 1.0e-04  min(eta) = -14.08      
+Iteration 7:   deviance = 1.0432e+11  eps = 4.01e-04  iters = 2    tol = 1.0e-04  min(eta) = -15.53      
+Iteration 8:   deviance = 1.0431e+11  eps = 6.78e-05  iters = 2    tol = 1.0e-04  min(eta) = -17.10      
+Iteration 9:   deviance = 1.0431e+11  eps = 1.16e-05  iters = 2    tol = 1.0e-05  min(eta) = -18.31      
+Iteration 10:  deviance = 1.0431e+11  eps = 1.67e-06  iters = 1    tol = 1.0e-05  min(eta) = -18.95   S  
+Iteration 11:  deviance = 1.0431e+11  eps = 1.56e-07  iters = 1    tol = 1.0e-06  min(eta) = -19.15   S  
+Iteration 12:  deviance = 1.0431e+11  eps = 5.56e-09  iters = 2    tol = 1.0e-07  min(eta) = -19.17   S  
+Iteration 13:  deviance = 1.0431e+11  eps = 2.56e-11  iters = 3    tol = 1.0e-08  min(eta) = -19.17   S  
+Iteration 14:  deviance = 1.0431e+11  eps = 1.60e-15  iters = 2    tol = 1.0e-09  min(eta) = -19.17   S O
+------------------------------------------------------------------------------------------------------------
+(legend: p: exact partial-out   s: exact solver   h: step-halving   o: epsilon below tolerance)
+Converged in 14 iterations and 38 HDFE sub-iterations (tol = 1.0e-08)
+
+HDFE PPML regression                              No. of obs      =    545,790
+Absorbing 2 HDFE groups                           Residual df     =    539,014
+                                                  Wald chi2(5)    =   35071.52
+Deviance             =  1.04310e+11               Prob > chi2     =     0.0000
+Log pseudolikelihood = -5.21571e+10               Pseudo R2       =     0.9257
+------------------------------------------------------------------------------
+             |               Robust
+           v | Coefficient  std. err.      z    P>|z|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+       ldist |  -.6726154   .0072888   -92.28   0.000    -.6869012   -.6583296
+     fta_wto |    .356206   .0153343    23.23   0.000     .3261513    .3862606
+      contig |   .4304369   .0162067    26.56   0.000     .3986724    .4622014
+      comcol |   .5489348    .035538    15.45   0.000     .4792816     .618588
+         lpn |   .0986789   .0307303     3.21   0.001     .0384486    .1589091
+       _cons |   20.96235   .0654092   320.48   0.000     20.83415    21.09055
+------------------------------------------------------------------------------
+
+Absorbed degrees of freedom:
+-----------------------------------------------------+
+ Absorbed FE | Categories  - Redundant  = Num. Coefs |
+-------------+---------------------------------------|
+          jt |      3396           0        3396     |
+          it |      3396          21        3375     |
+-----------------------------------------------------+
+
+. 
+.         
+.         replace   ppml_d_it         = exp(ppml_d_it)
+(545,790 real changes made)
+
+.     drop if   ppml_d_it         == .
+(8,736 observations deleted)
+
+. 
+.         bys year: egen max_rca          = max(ppml_d_it)
+
+.                  gen  norm_IMRT     = ppml_d_it/max_rca
+
+.         
+.        replace norm_IMRT        =  .   if norm_IMRT <= 0.000001
+(0 real changes made)
+
+.        drop if norm_IMRT        == .
+(0 observations deleted)
+
+.         
+.         keep if year                            >= $ldate_bg1
+(337,778 observations deleted)
+
+.         
+.         collapse (mean)    norm_IMRT  , by(iso_o)
+
+.         rename iso_o iso3
+
+. 
+.         merge m:1 iso3 using "$DATA/cty/TP_FAO_cty_year", keepusing(iso3)
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                             4
+        from master                         0  (_merge==1)
+        from using                          4  (_merge==2)
+
+    Matched                               162  (_merge==3)
+    -----------------------------------------
+
+.         keep    if _m == 3
+(4 observations deleted)
+
+.         drop    _m 
+
+. 
+.         gsort   -norm
+
+.         
+.         gen             rank = _n
+
+.         drop    norm
+
+.         keep    if rank <= 30
+(132 observations deleted)
+
+.         
+.         gen             estimation      = "PPML value"
+
+.         gen             item            = "supply int good"
+
+.         save "$RES//`iso'//temp/norm_OMRT_int_ppml", replace
+(file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//DEU//temp/norm_OMRT_int_ppml.dta not found)
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//DEU//temp/norm_OMRT_int_ppml.dta saved
+
+. restore
+
+. 
+. 
+. ********************************************************************************
+. ********************************************************************************
+. ********************************************************************************
+. 
+. * 3) Export a table of results
+. 
+. use                                     "$RES//`iso'//temp/norm_IMRT_ppml", clear
+
+. 
+. append  using                   "$RES//`iso'//temp/norm_IMRT_int_ppml"
+(variable item was str6, now str15 to accommodate using data's values)
+
+. 
+. append  using                   "$RES//`iso'//temp/norm_OMRT_ppml"
+
+. 
+. append  using                   "$RES//`iso'//temp/norm_OMRT_int_ppml"
+
+. 
+. merge   m:1 iso3        using   "$RES//`iso'//temp/temp_regio"
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                           132
+        from master                         0  (_merge==1)
+        from using                        132  (_merge==2)
+
+    Matched                               120  (_merge==3)
+    -----------------------------------------
+
+. keep if _m == 3
+(132 observations deleted)
+
+. drop    _m
+
+. 
+. 
+. rename iso3 iso_d
+
+. 
+. merge   m:1 iso_d        using "$RES//`iso'//temp/RTA_cty", keepus(agreem $kmean_alg )
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                           121
+        from master                        53  (_merge==1)
+        from using                         68  (_merge==2)
+
+    Matched                                67  (_merge==3)
+    -----------------------------------------
+
+. drop    if _m == 2
+(68 observations deleted)
+
+. drop      _m
+
+. 
+. sort item estimation rank
+
+. 
+. rename iso_d iso
+
+. 
+. save                            "$RES//`iso'//RTA_to_sign.dta", replace
+(file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//DEU//RTA_to_sign.dta not found)
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//DEU//RTA_to_sign.dta saved
+
+. 
+. ********************************************************************************
+. * Add market shares: 
+. 
+. use                     "$RES//`iso'//RTA_to_sign.dta", clear
+
+. keep            iso
+
+. drop    if      iso == "`iso'"
+(4 observations deleted)
+
+. bys iso:        keep if _n == 1
+(83 observations deleted)
+
+. save            "$RES//`iso'//temp/cty_in_RTA_to_sign.dta", replace
+(file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//DEU//temp/cty_in_RTA_to_sign.dta not found)
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//DEU//temp/cty_in_RTA_to_sign.dta saved
+
+. 
+. ********************************************************************************
+. ********************************************************************************
+. 
+. use "$RES//`iso'//temp/trade_baci_cty", clear
+
+. 
+. rename t year
+
+. keep if year >= $ldate_bg1
+(107,594,443 observations deleted)
+
+. 
+. keep if iso_d == "`iso'"
+(79,027,696 observations deleted)
+
+. 
+. collapse (sum) v, by(  iso_o iso_d year)
+
+.          
+. bys year iso_d: egen                    M = total(v)
+
+. gen     m_mkts_sh   =   v/M
+
+.         
+. collapse (mean) m_mkts_sh, by(iso_o)
+
+. 
+. rename  iso_o iso
+
+. save    "$RES//`iso'//temp/mkt_sh_M.dta", replace
+(file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//DEU//temp/mkt_sh_M.dta not found)
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//DEU//temp/mkt_sh_M.dta saved
+
+. 
+. 
+. ********************************************************************************
+. ********************************************************************************
+. 
+. use "$RES//`iso'//temp/trade_baci_cty", clear
+
+. 
+. rename t year
+
+. keep if year >= $ldate_bg1
+(107,594,443 observations deleted)
+
+. 
+. keep if iso_o == "`iso'"
+(77,448,310 observations deleted)
+
+. 
+. collapse (sum) v, by(iso_o iso_d year)
+
+.          
+. bys year iso_o: egen                    X = total(v)
+
+. gen     x_mkts_sh   =   v/X
+
+.         
+. collapse (mean) x_mkts_sh, by(iso_d)
+
+.                                         
+. rename  iso_d iso
+
+. 
+. merge   1:1             iso     using           "$RES//`iso'//temp/mkt_sh_M.dta"
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                             0
+    Matched                               161  (_merge==3)
+    -----------------------------------------
+
+. 
+. replace         x_mkts_sh = 0 if _m == 2                                        
+(0 real changes made)
+
+. replace         m_mkts_sh = 0 if _m == 1                        
+(0 real changes made)
+
+.                                         
+. drop            _m
+
+. 
+. merge   1:1             iso     using           "$RES//`iso'//temp/cty_in_RTA_to_sign.dta"
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                           128
+        from master                       128  (_merge==1)
+        from using                          0  (_merge==2)
+
+    Matched                                33  (_merge==3)
+    -----------------------------------------
+
+. keep    if      _m == 3                                 
+(128 observations deleted)
+
+. drop            _m
+
+. 
+. save    "$RES//`iso'//temp/mkt_sh.dta", replace
+(file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//DEU//temp/mkt_sh.dta not found)
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//DEU//temp/mkt_sh.dta saved
+
+.                                         
+. ********************************************************************************
+. 
+. use                     "$RES//`iso'//RTA_to_sign.dta", clear
+
+.                                 
+. merge           m:1             iso     using           "$RES//`iso'//temp/mkt_sh.dta"          
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                             4
+        from master                         4  (_merge==1)
+        from using                          0  (_merge==2)
+
+    Matched                               116  (_merge==3)
+    -----------------------------------------
+
+. drop            _m
+
+.                                         
+. sort item estimation rank
+
+. save                            "$RES//`iso'//RTA_to_sign.dta", replace
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//DEU//RTA_to_sign.dta saved
+
+. export excel using      "$RES//`iso'//RTA_to_sign.xlsx", sheet("RTA to sign")  sheetreplace firstrow(variables) nolabel 
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//DEU//RTA_to_sign.xlsx saved
+
+.                                         
+. cap     log close

@@ -1,0 +1,3364 @@
+
+. 
+. ********************************************************************************
+. ********************************************************************************
+. * Read Results files
+. 
+. cd "$RES//`iso'//temp/"
+d:\santoni\Dropbox\WW_other_projs\WB_2024\WB_GE\WB_DTA_Toolkit\2.res\toolkit\CRI\temp
+
+. 
+. 
+. local int : dir "`c(pwd)'"  files "*INT_*.dta" 
+
+.  
+. 
+. local s = 1 
+
+.  
+. foreach file in   `int'  {
+  2. 
+. ********************************************************************************
+. * Format Table
+. local sigma $sigma 
+  3. local X     $year_reg
+  4. 
+. use  `file' , clear
+  5.  
+. 
+.    gen  TREAT                    = ""
+  6. replace TREAT                    = "`iso'" if (iso_o    == "`iso'")
+  7. replace TREAT                    = "ROW"   if (iso_o    != "`iso'")
+  8. 
+. 
+. 
+. summ replication
+  9. global rep = `r(mean)'
+ 10. 
+. local cty                               =count[1]   
+ 11. local type              =type[1]   
+ 12. local counterfactual    = "`type'_`cty'"
+ 13. 
+. ********************************************************************************
+. ********************************************************************************
+. 
+.   
+.  
+. 
+. collapse (sum) rGDP_FULL  rGDP_BLN  Xi_FULL  Xi_BLN Ti_FULL  Ti_BLN (mean) change_price_FULL change_IMR_FULL, by(TREAT)
+ 14. 
+.   
+. gen change_rGDP_FULL            = ( rGDP_FULL  - rGDP_BLN    )/ rGDP_BLN    *100
+ 15. 
+. gen change_Xi_FULL              = (Xi_FULL     - Xi_BLN      )/ Xi_BLN      *100
+ 16. 
+. gen change_Ti_FULL              = (Ti_FULL     - Ti_BLN      )/ Ti_BLN      *100
+ 17. 
+. 
+. gen id = _n
+ 18. 
+. reshape wide change_rGDP change_Xi change_Ti change_price_FULL change_IMR_FULL, i(id) j(TREAT) string
+ 19. 
+. keep change_*
+ 20.  
+.  
+. order  change_Xi_FULL`iso' change_rGDP_FULL`iso' change_price_FULL`iso' change_IMR_FULL`iso' change_Xi_FULLROW change_rGDP_FULLROW change_Ti_FULL`iso'  change_pr
+> ice_FULLROW change_IMR_FULLROW
+ 21.  
+. ********************************************************************************
+. ********************************************************************************
+. 
+.  
+. if `s' == 1 {
+ 22. export excel  "$RES//`iso'//GE_tables_`X'.xlsx", sheet("`counterfactual'")  firstrow(variables) nolabel  replace
+ 23. }
+ 24. 
+. 
+. if `s' > 1 {
+ 25. export excel  "$RES//`iso'//GE_tables_`X'.xlsx", sheet("`counterfactual'")  firstrow(variables) nolabel sheetreplace
+ 26. 
+. }
+ 27. 
+. ********************************************************************************
+. ********************************************************************************
+. ********************************************************************************
+. ********************************************************************************
+. 
+. 
+. 
+. use  `file' , clear
+ 28. 
+.    gen  TREAT   = ""
+ 29. replace TREAT   = "`iso'" if (iso_o    == "`iso'")
+ 30. replace TREAT   = "ROW"   if (iso_o    != "`iso'")
+ 31. 
+.  
+. keep country change_* TREAT 
+ 32. 
+. merge m:1 country using "$CTY/temp_cty_name", keepusing(country_name)
+ 33. keep if _m==3
+ 34. drop _m
+ 35. 
+. 
+. 
+. sort  country_name
+ 36. 
+. keep    country_name country  change_Xi_FULL change_rGDP_FULL change_price_FULL change_IMR_FULL  TREAT change_Ti_FULL
+ 37. order   country_name country  change_Xi_FULL change_rGDP_FULL change_price_FULL change_IMR_FULL  TREAT change_Ti_FULL
+ 38.  
+. if `s' == 1 {
+ 39. export excel  "$RES//`iso'//Country_GE_tables_`X'.xlsx", sheet("`counterfactual'_CTY")  firstrow(variables) nolabel  replace
+ 40. }
+ 41. 
+. 
+. if `s' > 1 {
+ 42. export excel  "$RES//`iso'//Country_GE_tables_`X'.xlsx", sheet("`counterfactual'_CTY")  firstrow(variables) nolabel sheetreplace
+ 43. }
+ 44. 
+. 
+.  local s = `s' + 1
+ 45. 
+. }
+(This version  08:00:15   7 Jun 2024 )
+(125 missing values generated)
+variable TREAT was str1 now str3
+(1 real change made)
+(124 real changes made)
+
+    Variable |        Obs        Mean    Std. dev.       Min        Max
+-------------+---------------------------------------------------------
+ replication |        125           5           0          5          5
+(j = CRI ROW)
+
+Data                               Long   ->   Wide
+-----------------------------------------------------------------------------
+Number of observations                2   ->   2           
+Number of variables                  13   ->   17          
+j variable (2 values)             TREAT   ->   (dropped)
+xij variables:
+                       change_rGDP_FULL   ->   change_rGDP_FULLCRI change_rGDP_FULLROW
+                         change_Xi_FULL   ->   change_Xi_FULLCRI change_Xi_FULLROW
+                         change_Ti_FULL   ->   change_Ti_FULLCRI change_Ti_FULLROW
+                      change_price_FULL   ->   change_price_FULLCRI change_price_FULLROW
+                        change_IMR_FULL   ->   change_IMR_FULLCRI change_IMR_FULLROW
+-----------------------------------------------------------------------------
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//CRI//GE_tables_2022.xlsx saved
+(This version  08:00:15   7 Jun 2024 )
+(125 missing values generated)
+variable TREAT was str1 now str3
+(1 real change made)
+(124 real changes made)
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                            41
+        from master                         0  (_merge==1)
+        from using                         41  (_merge==2)
+
+    Matched                               125  (_merge==3)
+    -----------------------------------------
+(41 observations deleted)
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//CRI//Country_GE_tables_2022.xlsx saved
+(This version  08:00:15   7 Jun 2024 )
+(125 missing values generated)
+variable TREAT was str1 now str3
+(1 real change made)
+(124 real changes made)
+
+    Variable |        Obs        Mean    Std. dev.       Min        Max
+-------------+---------------------------------------------------------
+ replication |        125           3           0          3          3
+(j = CRI ROW)
+
+Data                               Long   ->   Wide
+-----------------------------------------------------------------------------
+Number of observations                2   ->   2           
+Number of variables                  13   ->   17          
+j variable (2 values)             TREAT   ->   (dropped)
+xij variables:
+                       change_rGDP_FULL   ->   change_rGDP_FULLCRI change_rGDP_FULLROW
+                         change_Xi_FULL   ->   change_Xi_FULLCRI change_Xi_FULLROW
+                         change_Ti_FULL   ->   change_Ti_FULLCRI change_Ti_FULLROW
+                      change_price_FULL   ->   change_price_FULLCRI change_price_FULLROW
+                        change_IMR_FULL   ->   change_IMR_FULLCRI change_IMR_FULLROW
+-----------------------------------------------------------------------------
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//CRI//GE_tables_2022.xlsx saved
+(This version  08:00:15   7 Jun 2024 )
+(125 missing values generated)
+variable TREAT was str1 now str3
+(1 real change made)
+(124 real changes made)
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                            41
+        from master                         0  (_merge==1)
+        from using                         41  (_merge==2)
+
+    Matched                               125  (_merge==3)
+    -----------------------------------------
+(41 observations deleted)
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//CRI//Country_GE_tables_2022.xlsx saved
+(This version  08:00:15   7 Jun 2024 )
+(125 missing values generated)
+variable TREAT was str1 now str3
+(1 real change made)
+(124 real changes made)
+
+    Variable |        Obs        Mean    Std. dev.       Min        Max
+-------------+---------------------------------------------------------
+ replication |        125           3           0          3          3
+(j = CRI ROW)
+
+Data                               Long   ->   Wide
+-----------------------------------------------------------------------------
+Number of observations                2   ->   2           
+Number of variables                  13   ->   17          
+j variable (2 values)             TREAT   ->   (dropped)
+xij variables:
+                       change_rGDP_FULL   ->   change_rGDP_FULLCRI change_rGDP_FULLROW
+                         change_Xi_FULL   ->   change_Xi_FULLCRI change_Xi_FULLROW
+                         change_Ti_FULL   ->   change_Ti_FULLCRI change_Ti_FULLROW
+                      change_price_FULL   ->   change_price_FULLCRI change_price_FULLROW
+                        change_IMR_FULL   ->   change_IMR_FULLCRI change_IMR_FULLROW
+-----------------------------------------------------------------------------
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//CRI//GE_tables_2022.xlsx saved
+(This version  08:00:15   7 Jun 2024 )
+(125 missing values generated)
+variable TREAT was str1 now str3
+(1 real change made)
+(124 real changes made)
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                            41
+        from master                         0  (_merge==1)
+        from using                         41  (_merge==2)
+
+    Matched                               125  (_merge==3)
+    -----------------------------------------
+(41 observations deleted)
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//CRI//Country_GE_tables_2022.xlsx saved
+(This version  08:00:15   7 Jun 2024 )
+(125 missing values generated)
+variable TREAT was str1 now str3
+(1 real change made)
+(124 real changes made)
+
+    Variable |        Obs        Mean    Std. dev.       Min        Max
+-------------+---------------------------------------------------------
+ replication |        125           3           0          3          3
+(j = CRI ROW)
+
+Data                               Long   ->   Wide
+-----------------------------------------------------------------------------
+Number of observations                2   ->   2           
+Number of variables                  13   ->   17          
+j variable (2 values)             TREAT   ->   (dropped)
+xij variables:
+                       change_rGDP_FULL   ->   change_rGDP_FULLCRI change_rGDP_FULLROW
+                         change_Xi_FULL   ->   change_Xi_FULLCRI change_Xi_FULLROW
+                         change_Ti_FULL   ->   change_Ti_FULLCRI change_Ti_FULLROW
+                      change_price_FULL   ->   change_price_FULLCRI change_price_FULLROW
+                        change_IMR_FULL   ->   change_IMR_FULLCRI change_IMR_FULLROW
+-----------------------------------------------------------------------------
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//CRI//GE_tables_2022.xlsx saved
+(This version  08:00:15   7 Jun 2024 )
+(125 missing values generated)
+variable TREAT was str1 now str3
+(1 real change made)
+(124 real changes made)
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                            41
+        from master                         0  (_merge==1)
+        from using                         41  (_merge==2)
+
+    Matched                               125  (_merge==3)
+    -----------------------------------------
+(41 observations deleted)
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//CRI//Country_GE_tables_2022.xlsx saved
+(This version  08:00:15   7 Jun 2024 )
+(125 missing values generated)
+variable TREAT was str1 now str3
+(1 real change made)
+(124 real changes made)
+
+    Variable |        Obs        Mean    Std. dev.       Min        Max
+-------------+---------------------------------------------------------
+ replication |        125           3           0          3          3
+(j = CRI ROW)
+
+Data                               Long   ->   Wide
+-----------------------------------------------------------------------------
+Number of observations                2   ->   2           
+Number of variables                  13   ->   17          
+j variable (2 values)             TREAT   ->   (dropped)
+xij variables:
+                       change_rGDP_FULL   ->   change_rGDP_FULLCRI change_rGDP_FULLROW
+                         change_Xi_FULL   ->   change_Xi_FULLCRI change_Xi_FULLROW
+                         change_Ti_FULL   ->   change_Ti_FULLCRI change_Ti_FULLROW
+                      change_price_FULL   ->   change_price_FULLCRI change_price_FULLROW
+                        change_IMR_FULL   ->   change_IMR_FULLCRI change_IMR_FULLROW
+-----------------------------------------------------------------------------
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//CRI//GE_tables_2022.xlsx saved
+(This version  08:00:15   7 Jun 2024 )
+(125 missing values generated)
+variable TREAT was str1 now str3
+(1 real change made)
+(124 real changes made)
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                            41
+        from master                         0  (_merge==1)
+        from using                         41  (_merge==2)
+
+    Matched                               125  (_merge==3)
+    -----------------------------------------
+(41 observations deleted)
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//CRI//Country_GE_tables_2022.xlsx saved
+(This version  08:00:15   7 Jun 2024 )
+(125 missing values generated)
+variable TREAT was str1 now str3
+(1 real change made)
+(124 real changes made)
+
+    Variable |        Obs        Mean    Std. dev.       Min        Max
+-------------+---------------------------------------------------------
+ replication |        125           3           0          3          3
+(j = CRI ROW)
+
+Data                               Long   ->   Wide
+-----------------------------------------------------------------------------
+Number of observations                2   ->   2           
+Number of variables                  13   ->   17          
+j variable (2 values)             TREAT   ->   (dropped)
+xij variables:
+                       change_rGDP_FULL   ->   change_rGDP_FULLCRI change_rGDP_FULLROW
+                         change_Xi_FULL   ->   change_Xi_FULLCRI change_Xi_FULLROW
+                         change_Ti_FULL   ->   change_Ti_FULLCRI change_Ti_FULLROW
+                      change_price_FULL   ->   change_price_FULLCRI change_price_FULLROW
+                        change_IMR_FULL   ->   change_IMR_FULLCRI change_IMR_FULLROW
+-----------------------------------------------------------------------------
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//CRI//GE_tables_2022.xlsx saved
+(This version  08:00:15   7 Jun 2024 )
+(125 missing values generated)
+variable TREAT was str1 now str3
+(1 real change made)
+(124 real changes made)
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                            41
+        from master                         0  (_merge==1)
+        from using                         41  (_merge==2)
+
+    Matched                               125  (_merge==3)
+    -----------------------------------------
+(41 observations deleted)
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//CRI//Country_GE_tables_2022.xlsx saved
+(This version  08:00:15   7 Jun 2024 )
+(125 missing values generated)
+variable TREAT was str1 now str3
+(1 real change made)
+(124 real changes made)
+
+    Variable |        Obs        Mean    Std. dev.       Min        Max
+-------------+---------------------------------------------------------
+ replication |        125           3           0          3          3
+(j = CRI ROW)
+
+Data                               Long   ->   Wide
+-----------------------------------------------------------------------------
+Number of observations                2   ->   2           
+Number of variables                  13   ->   17          
+j variable (2 values)             TREAT   ->   (dropped)
+xij variables:
+                       change_rGDP_FULL   ->   change_rGDP_FULLCRI change_rGDP_FULLROW
+                         change_Xi_FULL   ->   change_Xi_FULLCRI change_Xi_FULLROW
+                         change_Ti_FULL   ->   change_Ti_FULLCRI change_Ti_FULLROW
+                      change_price_FULL   ->   change_price_FULLCRI change_price_FULLROW
+                        change_IMR_FULL   ->   change_IMR_FULLCRI change_IMR_FULLROW
+-----------------------------------------------------------------------------
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//CRI//GE_tables_2022.xlsx saved
+(This version  08:00:15   7 Jun 2024 )
+(125 missing values generated)
+variable TREAT was str1 now str3
+(1 real change made)
+(124 real changes made)
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                            41
+        from master                         0  (_merge==1)
+        from using                         41  (_merge==2)
+
+    Matched                               125  (_merge==3)
+    -----------------------------------------
+(41 observations deleted)
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//CRI//Country_GE_tables_2022.xlsx saved
+(This version  08:00:15   7 Jun 2024 )
+(125 missing values generated)
+variable TREAT was str1 now str3
+(1 real change made)
+(124 real changes made)
+
+    Variable |        Obs        Mean    Std. dev.       Min        Max
+-------------+---------------------------------------------------------
+ replication |        125           3           0          3          3
+(j = CRI ROW)
+
+Data                               Long   ->   Wide
+-----------------------------------------------------------------------------
+Number of observations                2   ->   2           
+Number of variables                  13   ->   17          
+j variable (2 values)             TREAT   ->   (dropped)
+xij variables:
+                       change_rGDP_FULL   ->   change_rGDP_FULLCRI change_rGDP_FULLROW
+                         change_Xi_FULL   ->   change_Xi_FULLCRI change_Xi_FULLROW
+                         change_Ti_FULL   ->   change_Ti_FULLCRI change_Ti_FULLROW
+                      change_price_FULL   ->   change_price_FULLCRI change_price_FULLROW
+                        change_IMR_FULL   ->   change_IMR_FULLCRI change_IMR_FULLROW
+-----------------------------------------------------------------------------
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//CRI//GE_tables_2022.xlsx saved
+(This version  08:00:15   7 Jun 2024 )
+(125 missing values generated)
+variable TREAT was str1 now str3
+(1 real change made)
+(124 real changes made)
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                            41
+        from master                         0  (_merge==1)
+        from using                         41  (_merge==2)
+
+    Matched                               125  (_merge==3)
+    -----------------------------------------
+(41 observations deleted)
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//CRI//Country_GE_tables_2022.xlsx saved
+(This version  08:00:15   7 Jun 2024 )
+(125 missing values generated)
+variable TREAT was str1 now str3
+(1 real change made)
+(124 real changes made)
+
+    Variable |        Obs        Mean    Std. dev.       Min        Max
+-------------+---------------------------------------------------------
+ replication |        125           3           0          3          3
+(j = CRI ROW)
+
+Data                               Long   ->   Wide
+-----------------------------------------------------------------------------
+Number of observations                2   ->   2           
+Number of variables                  13   ->   17          
+j variable (2 values)             TREAT   ->   (dropped)
+xij variables:
+                       change_rGDP_FULL   ->   change_rGDP_FULLCRI change_rGDP_FULLROW
+                         change_Xi_FULL   ->   change_Xi_FULLCRI change_Xi_FULLROW
+                         change_Ti_FULL   ->   change_Ti_FULLCRI change_Ti_FULLROW
+                      change_price_FULL   ->   change_price_FULLCRI change_price_FULLROW
+                        change_IMR_FULL   ->   change_IMR_FULLCRI change_IMR_FULLROW
+-----------------------------------------------------------------------------
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//CRI//GE_tables_2022.xlsx saved
+(This version  08:00:15   7 Jun 2024 )
+(125 missing values generated)
+variable TREAT was str1 now str3
+(1 real change made)
+(124 real changes made)
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                            41
+        from master                         0  (_merge==1)
+        from using                         41  (_merge==2)
+
+    Matched                               125  (_merge==3)
+    -----------------------------------------
+(41 observations deleted)
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//CRI//Country_GE_tables_2022.xlsx saved
+(This version  08:00:15   7 Jun 2024 )
+(125 missing values generated)
+variable TREAT was str1 now str3
+(1 real change made)
+(124 real changes made)
+
+    Variable |        Obs        Mean    Std. dev.       Min        Max
+-------------+---------------------------------------------------------
+ replication |        125           3           0          3          3
+(j = CRI ROW)
+
+Data                               Long   ->   Wide
+-----------------------------------------------------------------------------
+Number of observations                2   ->   2           
+Number of variables                  13   ->   17          
+j variable (2 values)             TREAT   ->   (dropped)
+xij variables:
+                       change_rGDP_FULL   ->   change_rGDP_FULLCRI change_rGDP_FULLROW
+                         change_Xi_FULL   ->   change_Xi_FULLCRI change_Xi_FULLROW
+                         change_Ti_FULL   ->   change_Ti_FULLCRI change_Ti_FULLROW
+                      change_price_FULL   ->   change_price_FULLCRI change_price_FULLROW
+                        change_IMR_FULL   ->   change_IMR_FULLCRI change_IMR_FULLROW
+-----------------------------------------------------------------------------
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//CRI//GE_tables_2022.xlsx saved
+(This version  08:00:15   7 Jun 2024 )
+(125 missing values generated)
+variable TREAT was str1 now str3
+(1 real change made)
+(124 real changes made)
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                            41
+        from master                         0  (_merge==1)
+        from using                         41  (_merge==2)
+
+    Matched                               125  (_merge==3)
+    -----------------------------------------
+(41 observations deleted)
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//CRI//Country_GE_tables_2022.xlsx saved
+(This version  08:00:15   7 Jun 2024 )
+(125 missing values generated)
+variable TREAT was str1 now str3
+(1 real change made)
+(124 real changes made)
+
+    Variable |        Obs        Mean    Std. dev.       Min        Max
+-------------+---------------------------------------------------------
+ replication |        125           3           0          3          3
+(j = CRI ROW)
+
+Data                               Long   ->   Wide
+-----------------------------------------------------------------------------
+Number of observations                2   ->   2           
+Number of variables                  13   ->   17          
+j variable (2 values)             TREAT   ->   (dropped)
+xij variables:
+                       change_rGDP_FULL   ->   change_rGDP_FULLCRI change_rGDP_FULLROW
+                         change_Xi_FULL   ->   change_Xi_FULLCRI change_Xi_FULLROW
+                         change_Ti_FULL   ->   change_Ti_FULLCRI change_Ti_FULLROW
+                      change_price_FULL   ->   change_price_FULLCRI change_price_FULLROW
+                        change_IMR_FULL   ->   change_IMR_FULLCRI change_IMR_FULLROW
+-----------------------------------------------------------------------------
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//CRI//GE_tables_2022.xlsx saved
+(This version  08:00:15   7 Jun 2024 )
+(125 missing values generated)
+variable TREAT was str1 now str3
+(1 real change made)
+(124 real changes made)
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                            41
+        from master                         0  (_merge==1)
+        from using                         41  (_merge==2)
+
+    Matched                               125  (_merge==3)
+    -----------------------------------------
+(41 observations deleted)
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//CRI//Country_GE_tables_2022.xlsx saved
+(This version  08:00:15   7 Jun 2024 )
+(125 missing values generated)
+variable TREAT was str1 now str3
+(1 real change made)
+(124 real changes made)
+
+    Variable |        Obs        Mean    Std. dev.       Min        Max
+-------------+---------------------------------------------------------
+ replication |        125           3           0          3          3
+(j = CRI ROW)
+
+Data                               Long   ->   Wide
+-----------------------------------------------------------------------------
+Number of observations                2   ->   2           
+Number of variables                  13   ->   17          
+j variable (2 values)             TREAT   ->   (dropped)
+xij variables:
+                       change_rGDP_FULL   ->   change_rGDP_FULLCRI change_rGDP_FULLROW
+                         change_Xi_FULL   ->   change_Xi_FULLCRI change_Xi_FULLROW
+                         change_Ti_FULL   ->   change_Ti_FULLCRI change_Ti_FULLROW
+                      change_price_FULL   ->   change_price_FULLCRI change_price_FULLROW
+                        change_IMR_FULL   ->   change_IMR_FULLCRI change_IMR_FULLROW
+-----------------------------------------------------------------------------
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//CRI//GE_tables_2022.xlsx saved
+(This version  08:00:15   7 Jun 2024 )
+(125 missing values generated)
+variable TREAT was str1 now str3
+(1 real change made)
+(124 real changes made)
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                            41
+        from master                         0  (_merge==1)
+        from using                         41  (_merge==2)
+
+    Matched                               125  (_merge==3)
+    -----------------------------------------
+(41 observations deleted)
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//CRI//Country_GE_tables_2022.xlsx saved
+(This version  08:00:15   7 Jun 2024 )
+(125 missing values generated)
+variable TREAT was str1 now str3
+(1 real change made)
+(124 real changes made)
+
+    Variable |        Obs        Mean    Std. dev.       Min        Max
+-------------+---------------------------------------------------------
+ replication |        125           3           0          3          3
+(j = CRI ROW)
+
+Data                               Long   ->   Wide
+-----------------------------------------------------------------------------
+Number of observations                2   ->   2           
+Number of variables                  13   ->   17          
+j variable (2 values)             TREAT   ->   (dropped)
+xij variables:
+                       change_rGDP_FULL   ->   change_rGDP_FULLCRI change_rGDP_FULLROW
+                         change_Xi_FULL   ->   change_Xi_FULLCRI change_Xi_FULLROW
+                         change_Ti_FULL   ->   change_Ti_FULLCRI change_Ti_FULLROW
+                      change_price_FULL   ->   change_price_FULLCRI change_price_FULLROW
+                        change_IMR_FULL   ->   change_IMR_FULLCRI change_IMR_FULLROW
+-----------------------------------------------------------------------------
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//CRI//GE_tables_2022.xlsx saved
+(This version  08:00:15   7 Jun 2024 )
+(125 missing values generated)
+variable TREAT was str1 now str3
+(1 real change made)
+(124 real changes made)
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                            41
+        from master                         0  (_merge==1)
+        from using                         41  (_merge==2)
+
+    Matched                               125  (_merge==3)
+    -----------------------------------------
+(41 observations deleted)
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//CRI//Country_GE_tables_2022.xlsx saved
+(This version  08:00:15   7 Jun 2024 )
+(125 missing values generated)
+variable TREAT was str1 now str3
+(1 real change made)
+(124 real changes made)
+
+    Variable |        Obs        Mean    Std. dev.       Min        Max
+-------------+---------------------------------------------------------
+ replication |        125           3           0          3          3
+(j = CRI ROW)
+
+Data                               Long   ->   Wide
+-----------------------------------------------------------------------------
+Number of observations                2   ->   2           
+Number of variables                  13   ->   17          
+j variable (2 values)             TREAT   ->   (dropped)
+xij variables:
+                       change_rGDP_FULL   ->   change_rGDP_FULLCRI change_rGDP_FULLROW
+                         change_Xi_FULL   ->   change_Xi_FULLCRI change_Xi_FULLROW
+                         change_Ti_FULL   ->   change_Ti_FULLCRI change_Ti_FULLROW
+                      change_price_FULL   ->   change_price_FULLCRI change_price_FULLROW
+                        change_IMR_FULL   ->   change_IMR_FULLCRI change_IMR_FULLROW
+-----------------------------------------------------------------------------
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//CRI//GE_tables_2022.xlsx saved
+(This version  08:00:15   7 Jun 2024 )
+(125 missing values generated)
+variable TREAT was str1 now str3
+(1 real change made)
+(124 real changes made)
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                            41
+        from master                         0  (_merge==1)
+        from using                         41  (_merge==2)
+
+    Matched                               125  (_merge==3)
+    -----------------------------------------
+(41 observations deleted)
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//CRI//Country_GE_tables_2022.xlsx saved
+
+. 
+. ********************************************************************************
+. ********************************************************************************
+. cd "$RES//`iso'//temp/"
+d:\santoni\Dropbox\WW_other_projs\WB_2024\WB_GE\WB_DTA_Toolkit\2.res\toolkit\CRI\temp
+
+. 
+. local int0 : dir "`c(pwd)'"  files "*INT0_*.dta" 
+
+. 
+. 
+. 
+. local s = 1 
+
+.  
+. foreach file in   `int0'  {
+  2. 
+. ********************************************************************************
+. * Format Table
+. local sigma $sigma 
+  3. local X     $year_reg
+  4. 
+. use  `file' , clear
+  5.  
+. 
+.    gen  TREAT                    = ""
+  6. replace TREAT                    = "`iso'" if (iso_o    == "`iso'")
+  7. replace TREAT                    = "ROW"   if (iso_o    != "`iso'")
+  8. 
+. 
+. 
+. summ replication
+  9. global rep = `r(mean)'
+ 10. 
+. local cty                               =count[1]   
+ 11. local type              =type[1]   
+ 12. local counterfactual    = "`type'_`cty'"
+ 13. 
+. ********************************************************************************
+. ********************************************************************************
+. 
+.   
+.  
+. 
+. collapse (sum) rGDP_FULL  rGDP_BLN  Xi_FULL  Xi_BLN Ti_FULL  Ti_BLN (mean) change_price_FULL change_IMR_FULL, by(TREAT)
+ 14. 
+.   
+. gen change_rGDP_FULL            = ( rGDP_FULL  - rGDP_BLN    )/ rGDP_BLN    *100
+ 15. 
+. gen change_Xi_FULL              = (Xi_FULL     - Xi_BLN      )/ Xi_BLN      *100
+ 16. 
+. gen change_Ti_FULL              = (Ti_FULL     - Ti_BLN      )/ Ti_BLN      *100
+ 17. 
+. 
+. gen id = _n
+ 18. 
+. reshape wide change_rGDP change_Xi change_Ti change_price_FULL change_IMR_FULL, i(id) j(TREAT) string
+ 19. 
+. keep change_*
+ 20.  
+.  
+. order  change_Xi_FULL`iso' change_rGDP_FULL`iso' change_price_FULL`iso' change_IMR_FULL`iso' change_Xi_FULLROW change_rGDP_FULLROW change_Ti_FULL`iso'  change_pr
+> ice_FULLROW change_IMR_FULLROW
+ 21.  
+. ********************************************************************************
+. ********************************************************************************
+. 
+.  
+. if `s' == 1 {
+ 22. export excel  "$RES//`iso'//INT0_GE_tables_`X'.xlsx", sheet("`counterfactual'")  firstrow(variables) nolabel  replace
+ 23. }
+ 24. 
+. 
+. if `s' > 1 {
+ 25. export excel  "$RES//`iso'//INT0_GE_tables_`X'.xlsx", sheet("`counterfactual'")  firstrow(variables) nolabel sheetreplace
+ 26. 
+. }
+ 27. 
+. ********************************************************************************
+. ********************************************************************************
+. ********************************************************************************
+. ********************************************************************************
+. 
+. 
+. 
+. use  `file' , clear
+ 28. 
+.    gen  TREAT   = ""
+ 29. replace TREAT   = "`iso'" if (iso_o    == "`iso'")
+ 30. replace TREAT   = "ROW"   if (iso_o    != "`iso'")
+ 31. 
+.  
+. keep country change_* TREAT 
+ 32. 
+. merge m:1 country using "$CTY/temp_cty_name", keepusing(country_name)
+ 33. keep if _m==3
+ 34. drop _m
+ 35. 
+. 
+. 
+. sort  country_name
+ 36. 
+. keep    country_name country  change_Xi_FULL change_rGDP_FULL change_price_FULL change_IMR_FULL  TREAT change_Ti_FULL
+ 37. order   country_name country  change_Xi_FULL change_rGDP_FULL change_price_FULL change_IMR_FULL  TREAT change_Ti_FULL
+ 38.  
+. if `s' == 1 {
+ 39. export excel  "$RES//`iso'//INT0_Country_GE_tables_`X'.xlsx", sheet("`counterfactual'_CTY")  firstrow(variables) nolabel  replace
+ 40. }
+ 41. 
+. 
+. if `s' > 1 {
+ 42. export excel  "$RES//`iso'//INT0_Country_GE_tables_`X'.xlsx", sheet("`counterfactual'_CTY")  firstrow(variables) nolabel sheetreplace
+ 43. }
+ 44. 
+. 
+.  local s = `s' + 1
+ 45. 
+. }
+(This version  08:00:15   7 Jun 2024 )
+(125 missing values generated)
+variable TREAT was str1 now str3
+(1 real change made)
+(124 real changes made)
+
+    Variable |        Obs        Mean    Std. dev.       Min        Max
+-------------+---------------------------------------------------------
+ replication |        125           4           0          4          4
+(j = CRI ROW)
+
+Data                               Long   ->   Wide
+-----------------------------------------------------------------------------
+Number of observations                2   ->   2           
+Number of variables                  13   ->   17          
+j variable (2 values)             TREAT   ->   (dropped)
+xij variables:
+                       change_rGDP_FULL   ->   change_rGDP_FULLCRI change_rGDP_FULLROW
+                         change_Xi_FULL   ->   change_Xi_FULLCRI change_Xi_FULLROW
+                         change_Ti_FULL   ->   change_Ti_FULLCRI change_Ti_FULLROW
+                      change_price_FULL   ->   change_price_FULLCRI change_price_FULLROW
+                        change_IMR_FULL   ->   change_IMR_FULLCRI change_IMR_FULLROW
+-----------------------------------------------------------------------------
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//CRI//INT0_GE_tables_2022.xlsx saved
+(This version  08:00:15   7 Jun 2024 )
+(125 missing values generated)
+variable TREAT was str1 now str3
+(1 real change made)
+(124 real changes made)
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                            41
+        from master                         0  (_merge==1)
+        from using                         41  (_merge==2)
+
+    Matched                               125  (_merge==3)
+    -----------------------------------------
+(41 observations deleted)
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//CRI//INT0_Country_GE_tables_2022.xlsx saved
+(This version  08:00:15   7 Jun 2024 )
+(125 missing values generated)
+variable TREAT was str1 now str3
+(1 real change made)
+(124 real changes made)
+
+    Variable |        Obs        Mean    Std. dev.       Min        Max
+-------------+---------------------------------------------------------
+ replication |        125           3           0          3          3
+(j = CRI ROW)
+
+Data                               Long   ->   Wide
+-----------------------------------------------------------------------------
+Number of observations                2   ->   2           
+Number of variables                  13   ->   17          
+j variable (2 values)             TREAT   ->   (dropped)
+xij variables:
+                       change_rGDP_FULL   ->   change_rGDP_FULLCRI change_rGDP_FULLROW
+                         change_Xi_FULL   ->   change_Xi_FULLCRI change_Xi_FULLROW
+                         change_Ti_FULL   ->   change_Ti_FULLCRI change_Ti_FULLROW
+                      change_price_FULL   ->   change_price_FULLCRI change_price_FULLROW
+                        change_IMR_FULL   ->   change_IMR_FULLCRI change_IMR_FULLROW
+-----------------------------------------------------------------------------
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//CRI//INT0_GE_tables_2022.xlsx saved
+(This version  08:00:15   7 Jun 2024 )
+(125 missing values generated)
+variable TREAT was str1 now str3
+(1 real change made)
+(124 real changes made)
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                            41
+        from master                         0  (_merge==1)
+        from using                         41  (_merge==2)
+
+    Matched                               125  (_merge==3)
+    -----------------------------------------
+(41 observations deleted)
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//CRI//INT0_Country_GE_tables_2022.xlsx saved
+(This version  08:00:15   7 Jun 2024 )
+(125 missing values generated)
+variable TREAT was str1 now str3
+(1 real change made)
+(124 real changes made)
+
+    Variable |        Obs        Mean    Std. dev.       Min        Max
+-------------+---------------------------------------------------------
+ replication |        125           3           0          3          3
+(j = CRI ROW)
+
+Data                               Long   ->   Wide
+-----------------------------------------------------------------------------
+Number of observations                2   ->   2           
+Number of variables                  13   ->   17          
+j variable (2 values)             TREAT   ->   (dropped)
+xij variables:
+                       change_rGDP_FULL   ->   change_rGDP_FULLCRI change_rGDP_FULLROW
+                         change_Xi_FULL   ->   change_Xi_FULLCRI change_Xi_FULLROW
+                         change_Ti_FULL   ->   change_Ti_FULLCRI change_Ti_FULLROW
+                      change_price_FULL   ->   change_price_FULLCRI change_price_FULLROW
+                        change_IMR_FULL   ->   change_IMR_FULLCRI change_IMR_FULLROW
+-----------------------------------------------------------------------------
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//CRI//INT0_GE_tables_2022.xlsx saved
+(This version  08:00:15   7 Jun 2024 )
+(125 missing values generated)
+variable TREAT was str1 now str3
+(1 real change made)
+(124 real changes made)
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                            41
+        from master                         0  (_merge==1)
+        from using                         41  (_merge==2)
+
+    Matched                               125  (_merge==3)
+    -----------------------------------------
+(41 observations deleted)
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//CRI//INT0_Country_GE_tables_2022.xlsx saved
+(This version  08:00:15   7 Jun 2024 )
+(125 missing values generated)
+variable TREAT was str1 now str3
+(1 real change made)
+(124 real changes made)
+
+    Variable |        Obs        Mean    Std. dev.       Min        Max
+-------------+---------------------------------------------------------
+ replication |        125           3           0          3          3
+(j = CRI ROW)
+
+Data                               Long   ->   Wide
+-----------------------------------------------------------------------------
+Number of observations                2   ->   2           
+Number of variables                  13   ->   17          
+j variable (2 values)             TREAT   ->   (dropped)
+xij variables:
+                       change_rGDP_FULL   ->   change_rGDP_FULLCRI change_rGDP_FULLROW
+                         change_Xi_FULL   ->   change_Xi_FULLCRI change_Xi_FULLROW
+                         change_Ti_FULL   ->   change_Ti_FULLCRI change_Ti_FULLROW
+                      change_price_FULL   ->   change_price_FULLCRI change_price_FULLROW
+                        change_IMR_FULL   ->   change_IMR_FULLCRI change_IMR_FULLROW
+-----------------------------------------------------------------------------
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//CRI//INT0_GE_tables_2022.xlsx saved
+(This version  08:00:15   7 Jun 2024 )
+(125 missing values generated)
+variable TREAT was str1 now str3
+(1 real change made)
+(124 real changes made)
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                            41
+        from master                         0  (_merge==1)
+        from using                         41  (_merge==2)
+
+    Matched                               125  (_merge==3)
+    -----------------------------------------
+(41 observations deleted)
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//CRI//INT0_Country_GE_tables_2022.xlsx saved
+(This version  08:00:15   7 Jun 2024 )
+(125 missing values generated)
+variable TREAT was str1 now str3
+(1 real change made)
+(124 real changes made)
+
+    Variable |        Obs        Mean    Std. dev.       Min        Max
+-------------+---------------------------------------------------------
+ replication |        125           3           0          3          3
+(j = CRI ROW)
+
+Data                               Long   ->   Wide
+-----------------------------------------------------------------------------
+Number of observations                2   ->   2           
+Number of variables                  13   ->   17          
+j variable (2 values)             TREAT   ->   (dropped)
+xij variables:
+                       change_rGDP_FULL   ->   change_rGDP_FULLCRI change_rGDP_FULLROW
+                         change_Xi_FULL   ->   change_Xi_FULLCRI change_Xi_FULLROW
+                         change_Ti_FULL   ->   change_Ti_FULLCRI change_Ti_FULLROW
+                      change_price_FULL   ->   change_price_FULLCRI change_price_FULLROW
+                        change_IMR_FULL   ->   change_IMR_FULLCRI change_IMR_FULLROW
+-----------------------------------------------------------------------------
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//CRI//INT0_GE_tables_2022.xlsx saved
+(This version  08:00:15   7 Jun 2024 )
+(125 missing values generated)
+variable TREAT was str1 now str3
+(1 real change made)
+(124 real changes made)
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                            41
+        from master                         0  (_merge==1)
+        from using                         41  (_merge==2)
+
+    Matched                               125  (_merge==3)
+    -----------------------------------------
+(41 observations deleted)
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//CRI//INT0_Country_GE_tables_2022.xlsx saved
+(This version  08:00:15   7 Jun 2024 )
+(125 missing values generated)
+variable TREAT was str1 now str3
+(1 real change made)
+(124 real changes made)
+
+    Variable |        Obs        Mean    Std. dev.       Min        Max
+-------------+---------------------------------------------------------
+ replication |        125           3           0          3          3
+(j = CRI ROW)
+
+Data                               Long   ->   Wide
+-----------------------------------------------------------------------------
+Number of observations                2   ->   2           
+Number of variables                  13   ->   17          
+j variable (2 values)             TREAT   ->   (dropped)
+xij variables:
+                       change_rGDP_FULL   ->   change_rGDP_FULLCRI change_rGDP_FULLROW
+                         change_Xi_FULL   ->   change_Xi_FULLCRI change_Xi_FULLROW
+                         change_Ti_FULL   ->   change_Ti_FULLCRI change_Ti_FULLROW
+                      change_price_FULL   ->   change_price_FULLCRI change_price_FULLROW
+                        change_IMR_FULL   ->   change_IMR_FULLCRI change_IMR_FULLROW
+-----------------------------------------------------------------------------
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//CRI//INT0_GE_tables_2022.xlsx saved
+(This version  08:00:15   7 Jun 2024 )
+(125 missing values generated)
+variable TREAT was str1 now str3
+(1 real change made)
+(124 real changes made)
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                            41
+        from master                         0  (_merge==1)
+        from using                         41  (_merge==2)
+
+    Matched                               125  (_merge==3)
+    -----------------------------------------
+(41 observations deleted)
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//CRI//INT0_Country_GE_tables_2022.xlsx saved
+(This version  08:00:15   7 Jun 2024 )
+(125 missing values generated)
+variable TREAT was str1 now str3
+(1 real change made)
+(124 real changes made)
+
+    Variable |        Obs        Mean    Std. dev.       Min        Max
+-------------+---------------------------------------------------------
+ replication |        125           3           0          3          3
+(j = CRI ROW)
+
+Data                               Long   ->   Wide
+-----------------------------------------------------------------------------
+Number of observations                2   ->   2           
+Number of variables                  13   ->   17          
+j variable (2 values)             TREAT   ->   (dropped)
+xij variables:
+                       change_rGDP_FULL   ->   change_rGDP_FULLCRI change_rGDP_FULLROW
+                         change_Xi_FULL   ->   change_Xi_FULLCRI change_Xi_FULLROW
+                         change_Ti_FULL   ->   change_Ti_FULLCRI change_Ti_FULLROW
+                      change_price_FULL   ->   change_price_FULLCRI change_price_FULLROW
+                        change_IMR_FULL   ->   change_IMR_FULLCRI change_IMR_FULLROW
+-----------------------------------------------------------------------------
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//CRI//INT0_GE_tables_2022.xlsx saved
+(This version  08:00:15   7 Jun 2024 )
+(125 missing values generated)
+variable TREAT was str1 now str3
+(1 real change made)
+(124 real changes made)
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                            41
+        from master                         0  (_merge==1)
+        from using                         41  (_merge==2)
+
+    Matched                               125  (_merge==3)
+    -----------------------------------------
+(41 observations deleted)
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//CRI//INT0_Country_GE_tables_2022.xlsx saved
+(This version  08:00:15   7 Jun 2024 )
+(125 missing values generated)
+variable TREAT was str1 now str3
+(1 real change made)
+(124 real changes made)
+
+    Variable |        Obs        Mean    Std. dev.       Min        Max
+-------------+---------------------------------------------------------
+ replication |        125           3           0          3          3
+(j = CRI ROW)
+
+Data                               Long   ->   Wide
+-----------------------------------------------------------------------------
+Number of observations                2   ->   2           
+Number of variables                  13   ->   17          
+j variable (2 values)             TREAT   ->   (dropped)
+xij variables:
+                       change_rGDP_FULL   ->   change_rGDP_FULLCRI change_rGDP_FULLROW
+                         change_Xi_FULL   ->   change_Xi_FULLCRI change_Xi_FULLROW
+                         change_Ti_FULL   ->   change_Ti_FULLCRI change_Ti_FULLROW
+                      change_price_FULL   ->   change_price_FULLCRI change_price_FULLROW
+                        change_IMR_FULL   ->   change_IMR_FULLCRI change_IMR_FULLROW
+-----------------------------------------------------------------------------
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//CRI//INT0_GE_tables_2022.xlsx saved
+(This version  08:00:15   7 Jun 2024 )
+(125 missing values generated)
+variable TREAT was str1 now str3
+(1 real change made)
+(124 real changes made)
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                            41
+        from master                         0  (_merge==1)
+        from using                         41  (_merge==2)
+
+    Matched                               125  (_merge==3)
+    -----------------------------------------
+(41 observations deleted)
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//CRI//INT0_Country_GE_tables_2022.xlsx saved
+(This version  08:00:15   7 Jun 2024 )
+(125 missing values generated)
+variable TREAT was str1 now str3
+(1 real change made)
+(124 real changes made)
+
+    Variable |        Obs        Mean    Std. dev.       Min        Max
+-------------+---------------------------------------------------------
+ replication |        125           3           0          3          3
+(j = CRI ROW)
+
+Data                               Long   ->   Wide
+-----------------------------------------------------------------------------
+Number of observations                2   ->   2           
+Number of variables                  13   ->   17          
+j variable (2 values)             TREAT   ->   (dropped)
+xij variables:
+                       change_rGDP_FULL   ->   change_rGDP_FULLCRI change_rGDP_FULLROW
+                         change_Xi_FULL   ->   change_Xi_FULLCRI change_Xi_FULLROW
+                         change_Ti_FULL   ->   change_Ti_FULLCRI change_Ti_FULLROW
+                      change_price_FULL   ->   change_price_FULLCRI change_price_FULLROW
+                        change_IMR_FULL   ->   change_IMR_FULLCRI change_IMR_FULLROW
+-----------------------------------------------------------------------------
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//CRI//INT0_GE_tables_2022.xlsx saved
+(This version  08:00:15   7 Jun 2024 )
+(125 missing values generated)
+variable TREAT was str1 now str3
+(1 real change made)
+(124 real changes made)
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                            41
+        from master                         0  (_merge==1)
+        from using                         41  (_merge==2)
+
+    Matched                               125  (_merge==3)
+    -----------------------------------------
+(41 observations deleted)
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//CRI//INT0_Country_GE_tables_2022.xlsx saved
+(This version  08:00:15   7 Jun 2024 )
+(125 missing values generated)
+variable TREAT was str1 now str3
+(1 real change made)
+(124 real changes made)
+
+    Variable |        Obs        Mean    Std. dev.       Min        Max
+-------------+---------------------------------------------------------
+ replication |        125           3           0          3          3
+(j = CRI ROW)
+
+Data                               Long   ->   Wide
+-----------------------------------------------------------------------------
+Number of observations                2   ->   2           
+Number of variables                  13   ->   17          
+j variable (2 values)             TREAT   ->   (dropped)
+xij variables:
+                       change_rGDP_FULL   ->   change_rGDP_FULLCRI change_rGDP_FULLROW
+                         change_Xi_FULL   ->   change_Xi_FULLCRI change_Xi_FULLROW
+                         change_Ti_FULL   ->   change_Ti_FULLCRI change_Ti_FULLROW
+                      change_price_FULL   ->   change_price_FULLCRI change_price_FULLROW
+                        change_IMR_FULL   ->   change_IMR_FULLCRI change_IMR_FULLROW
+-----------------------------------------------------------------------------
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//CRI//INT0_GE_tables_2022.xlsx saved
+(This version  08:00:15   7 Jun 2024 )
+(125 missing values generated)
+variable TREAT was str1 now str3
+(1 real change made)
+(124 real changes made)
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                            41
+        from master                         0  (_merge==1)
+        from using                         41  (_merge==2)
+
+    Matched                               125  (_merge==3)
+    -----------------------------------------
+(41 observations deleted)
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//CRI//INT0_Country_GE_tables_2022.xlsx saved
+(This version  08:00:15   7 Jun 2024 )
+(125 missing values generated)
+variable TREAT was str1 now str3
+(1 real change made)
+(124 real changes made)
+
+    Variable |        Obs        Mean    Std. dev.       Min        Max
+-------------+---------------------------------------------------------
+ replication |        125           3           0          3          3
+(j = CRI ROW)
+
+Data                               Long   ->   Wide
+-----------------------------------------------------------------------------
+Number of observations                2   ->   2           
+Number of variables                  13   ->   17          
+j variable (2 values)             TREAT   ->   (dropped)
+xij variables:
+                       change_rGDP_FULL   ->   change_rGDP_FULLCRI change_rGDP_FULLROW
+                         change_Xi_FULL   ->   change_Xi_FULLCRI change_Xi_FULLROW
+                         change_Ti_FULL   ->   change_Ti_FULLCRI change_Ti_FULLROW
+                      change_price_FULL   ->   change_price_FULLCRI change_price_FULLROW
+                        change_IMR_FULL   ->   change_IMR_FULLCRI change_IMR_FULLROW
+-----------------------------------------------------------------------------
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//CRI//INT0_GE_tables_2022.xlsx saved
+(This version  08:00:15   7 Jun 2024 )
+(125 missing values generated)
+variable TREAT was str1 now str3
+(1 real change made)
+(124 real changes made)
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                            41
+        from master                         0  (_merge==1)
+        from using                         41  (_merge==2)
+
+    Matched                               125  (_merge==3)
+    -----------------------------------------
+(41 observations deleted)
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//CRI//INT0_Country_GE_tables_2022.xlsx saved
+(This version  08:00:15   7 Jun 2024 )
+(125 missing values generated)
+variable TREAT was str1 now str3
+(1 real change made)
+(124 real changes made)
+
+    Variable |        Obs        Mean    Std. dev.       Min        Max
+-------------+---------------------------------------------------------
+ replication |        125           3           0          3          3
+(j = CRI ROW)
+
+Data                               Long   ->   Wide
+-----------------------------------------------------------------------------
+Number of observations                2   ->   2           
+Number of variables                  13   ->   17          
+j variable (2 values)             TREAT   ->   (dropped)
+xij variables:
+                       change_rGDP_FULL   ->   change_rGDP_FULLCRI change_rGDP_FULLROW
+                         change_Xi_FULL   ->   change_Xi_FULLCRI change_Xi_FULLROW
+                         change_Ti_FULL   ->   change_Ti_FULLCRI change_Ti_FULLROW
+                      change_price_FULL   ->   change_price_FULLCRI change_price_FULLROW
+                        change_IMR_FULL   ->   change_IMR_FULLCRI change_IMR_FULLROW
+-----------------------------------------------------------------------------
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//CRI//INT0_GE_tables_2022.xlsx saved
+(This version  08:00:15   7 Jun 2024 )
+(125 missing values generated)
+variable TREAT was str1 now str3
+(1 real change made)
+(124 real changes made)
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                            41
+        from master                         0  (_merge==1)
+        from using                         41  (_merge==2)
+
+    Matched                               125  (_merge==3)
+    -----------------------------------------
+(41 observations deleted)
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//CRI//INT0_Country_GE_tables_2022.xlsx saved
+(This version  08:00:15   7 Jun 2024 )
+(125 missing values generated)
+variable TREAT was str1 now str3
+(1 real change made)
+(124 real changes made)
+
+    Variable |        Obs        Mean    Std. dev.       Min        Max
+-------------+---------------------------------------------------------
+ replication |        125           4           0          4          4
+(j = CRI ROW)
+
+Data                               Long   ->   Wide
+-----------------------------------------------------------------------------
+Number of observations                2   ->   2           
+Number of variables                  13   ->   17          
+j variable (2 values)             TREAT   ->   (dropped)
+xij variables:
+                       change_rGDP_FULL   ->   change_rGDP_FULLCRI change_rGDP_FULLROW
+                         change_Xi_FULL   ->   change_Xi_FULLCRI change_Xi_FULLROW
+                         change_Ti_FULL   ->   change_Ti_FULLCRI change_Ti_FULLROW
+                      change_price_FULL   ->   change_price_FULLCRI change_price_FULLROW
+                        change_IMR_FULL   ->   change_IMR_FULLCRI change_IMR_FULLROW
+-----------------------------------------------------------------------------
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//CRI//INT0_GE_tables_2022.xlsx saved
+(This version  08:00:15   7 Jun 2024 )
+(125 missing values generated)
+variable TREAT was str1 now str3
+(1 real change made)
+(124 real changes made)
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                            41
+        from master                         0  (_merge==1)
+        from using                         41  (_merge==2)
+
+    Matched                               125  (_merge==3)
+    -----------------------------------------
+(41 observations deleted)
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//CRI//INT0_Country_GE_tables_2022.xlsx saved
+(This version  08:00:15   7 Jun 2024 )
+(125 missing values generated)
+variable TREAT was str1 now str3
+(1 real change made)
+(124 real changes made)
+
+    Variable |        Obs        Mean    Std. dev.       Min        Max
+-------------+---------------------------------------------------------
+ replication |        125           3           0          3          3
+(j = CRI ROW)
+
+Data                               Long   ->   Wide
+-----------------------------------------------------------------------------
+Number of observations                2   ->   2           
+Number of variables                  13   ->   17          
+j variable (2 values)             TREAT   ->   (dropped)
+xij variables:
+                       change_rGDP_FULL   ->   change_rGDP_FULLCRI change_rGDP_FULLROW
+                         change_Xi_FULL   ->   change_Xi_FULLCRI change_Xi_FULLROW
+                         change_Ti_FULL   ->   change_Ti_FULLCRI change_Ti_FULLROW
+                      change_price_FULL   ->   change_price_FULLCRI change_price_FULLROW
+                        change_IMR_FULL   ->   change_IMR_FULLCRI change_IMR_FULLROW
+-----------------------------------------------------------------------------
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//CRI//INT0_GE_tables_2022.xlsx saved
+(This version  08:00:15   7 Jun 2024 )
+(125 missing values generated)
+variable TREAT was str1 now str3
+(1 real change made)
+(124 real changes made)
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                            41
+        from master                         0  (_merge==1)
+        from using                         41  (_merge==2)
+
+    Matched                               125  (_merge==3)
+    -----------------------------------------
+(41 observations deleted)
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//CRI//INT0_Country_GE_tables_2022.xlsx saved
+
+. 
+. ********************************************************************************
+. ********************************************************************************
+. ********************************************************************************
+. * Read Results files
+. 
+. cd "$RES//`iso'//temp/"
+d:\santoni\Dropbox\WW_other_projs\WB_2024\WB_GE\WB_DTA_Toolkit\2.res\toolkit\CRI\temp
+
+. 
+. 
+. local ext : dir "`c(pwd)'"  files "*EXT1*.dta" 
+
+. 
+. 
+. 
+. local s = 1 
+
+.  
+. foreach file in  `ext' {
+  2. 
+. ********************************************************************************
+. * Format Table
+. local sigma $sigma 
+  3. local X     $year_reg
+  4. 
+. use  `file' , clear
+  5.  
+. 
+.    gen  TREAT                    = ""
+  6. replace TREAT                    = "`iso'" if (iso_o    == "`iso'")
+  7. replace TREAT                    = "ROW"   if (iso_o    != "`iso'")
+  8. 
+. 
+. 
+. summ replication
+  9. global rep = `r(mean)'
+ 10. 
+. local cty                               =count[1]   
+ 11. local type              =type[1]   
+ 12. local counterfactual    = "`cty'_`type'"
+ 13. 
+. ********************************************************************************
+. ********************************************************************************
+. 
+.   
+.  
+. 
+. collapse (sum) rGDP_FULL  rGDP_BLN  Xi_FULL  Xi_BLN Ti_FULL  Ti_BLN (mean) change_price_FULL change_IMR_FULL, by(TREAT)
+ 14. 
+.   
+. gen change_rGDP_FULL            = ( rGDP_FULL  - rGDP_BLN    )/ rGDP_BLN    *100
+ 15. 
+. gen change_Xi_FULL              = (Xi_FULL     - Xi_BLN      )/ Xi_BLN      *100
+ 16. 
+. gen change_Ti_FULL              = (Ti_FULL     - Ti_BLN      )/ Ti_BLN      *100
+ 17. 
+. 
+. gen id = _n
+ 18. 
+. reshape wide change_rGDP change_Xi change_Ti change_price_FULL change_IMR_FULL, i(id) j(TREAT) string
+ 19. 
+. keep change_*
+ 20.  
+.  
+. order  change_Xi_FULL`iso' change_rGDP_FULL`iso' change_price_FULL`iso' change_IMR_FULL`iso' change_Xi_FULLROW change_rGDP_FULLROW change_Ti_FULL`iso'  change_pr
+> ice_FULLROW change_IMR_FULLROW
+ 21.  
+. ********************************************************************************
+. ********************************************************************************
+. 
+.  
+. if `s' == 1 {
+ 22. export excel  "$RES//`iso'//GE_EXT1_`X'.xlsx", sheet("`counterfactual'")  firstrow(variables) nolabel  replace
+ 23. }
+ 24. 
+. 
+. if `s' > 1 {
+ 25. export excel  "$RES//`iso'//GE_EXT1_`X'.xlsx", sheet("`counterfactual'")  firstrow(variables) nolabel sheetreplace
+ 26. 
+. }
+ 27. 
+. ********************************************************************************
+. ********************************************************************************
+. ********************************************************************************
+. ********************************************************************************
+. 
+. 
+. 
+. use  `file' , clear
+ 28. 
+.    gen  TREAT   = ""
+ 29. replace TREAT   = "`iso'" if (iso_o    == "`iso'")
+ 30. replace TREAT   = "ROW"   if (iso_o    != "`iso'")
+ 31. 
+.  
+. keep country change_* TREAT 
+ 32. 
+. merge m:1 country using "$CTY/temp_cty_name", keepusing(country_name)
+ 33. keep if _m==3
+ 34. drop _m
+ 35. 
+. 
+. 
+. sort  country_name
+ 36. 
+. keep    country_name country  change_Xi_FULL change_rGDP_FULL change_price_FULL change_IMR_FULL  TREAT change_Ti_FULL
+ 37. order   country_name country  change_Xi_FULL change_rGDP_FULL change_price_FULL change_IMR_FULL  TREAT change_Ti_FULL
+ 38.  
+. if `s' == 1 {
+ 39. export excel  "$RES//`iso'//Country_GE_EXT1_`X'.xlsx", sheet("`counterfactual'_CTY")  firstrow(variables) nolabel  replace
+ 40. }
+ 41. 
+. 
+. if `s' > 1 {
+ 42. export excel  "$RES//`iso'//Country_GE_EXT1_`X'.xlsx", sheet("`counterfactual'_CTY")  firstrow(variables) nolabel sheetreplace
+ 43. }
+ 44. 
+. 
+.  local s = `s' + 1
+ 45. 
+. }
+(This version  08:00:15   7 Jun 2024 )
+(125 missing values generated)
+variable TREAT was str1 now str3
+(1 real change made)
+(124 real changes made)
+
+    Variable |        Obs        Mean    Std. dev.       Min        Max
+-------------+---------------------------------------------------------
+ replication |        125           3           0          3          3
+(j = CRI ROW)
+
+Data                               Long   ->   Wide
+-----------------------------------------------------------------------------
+Number of observations                2   ->   2           
+Number of variables                  13   ->   17          
+j variable (2 values)             TREAT   ->   (dropped)
+xij variables:
+                       change_rGDP_FULL   ->   change_rGDP_FULLCRI change_rGDP_FULLROW
+                         change_Xi_FULL   ->   change_Xi_FULLCRI change_Xi_FULLROW
+                         change_Ti_FULL   ->   change_Ti_FULLCRI change_Ti_FULLROW
+                      change_price_FULL   ->   change_price_FULLCRI change_price_FULLROW
+                        change_IMR_FULL   ->   change_IMR_FULLCRI change_IMR_FULLROW
+-----------------------------------------------------------------------------
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//CRI//GE_EXT1_2022.xlsx saved
+(This version  08:00:15   7 Jun 2024 )
+(125 missing values generated)
+variable TREAT was str1 now str3
+(1 real change made)
+(124 real changes made)
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                            41
+        from master                         0  (_merge==1)
+        from using                         41  (_merge==2)
+
+    Matched                               125  (_merge==3)
+    -----------------------------------------
+(41 observations deleted)
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//CRI//Country_GE_EXT1_2022.xlsx saved
+(This version  08:00:15   7 Jun 2024 )
+(125 missing values generated)
+variable TREAT was str1 now str3
+(1 real change made)
+(124 real changes made)
+
+    Variable |        Obs        Mean    Std. dev.       Min        Max
+-------------+---------------------------------------------------------
+ replication |        125           3           0          3          3
+(j = CRI ROW)
+
+Data                               Long   ->   Wide
+-----------------------------------------------------------------------------
+Number of observations                2   ->   2           
+Number of variables                  13   ->   17          
+j variable (2 values)             TREAT   ->   (dropped)
+xij variables:
+                       change_rGDP_FULL   ->   change_rGDP_FULLCRI change_rGDP_FULLROW
+                         change_Xi_FULL   ->   change_Xi_FULLCRI change_Xi_FULLROW
+                         change_Ti_FULL   ->   change_Ti_FULLCRI change_Ti_FULLROW
+                      change_price_FULL   ->   change_price_FULLCRI change_price_FULLROW
+                        change_IMR_FULL   ->   change_IMR_FULLCRI change_IMR_FULLROW
+-----------------------------------------------------------------------------
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//CRI//GE_EXT1_2022.xlsx saved
+(This version  08:00:15   7 Jun 2024 )
+(125 missing values generated)
+variable TREAT was str1 now str3
+(1 real change made)
+(124 real changes made)
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                            41
+        from master                         0  (_merge==1)
+        from using                         41  (_merge==2)
+
+    Matched                               125  (_merge==3)
+    -----------------------------------------
+(41 observations deleted)
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//CRI//Country_GE_EXT1_2022.xlsx saved
+(This version  08:00:15   7 Jun 2024 )
+(125 missing values generated)
+variable TREAT was str1 now str3
+(1 real change made)
+(124 real changes made)
+
+    Variable |        Obs        Mean    Std. dev.       Min        Max
+-------------+---------------------------------------------------------
+ replication |        125           3           0          3          3
+(j = CRI ROW)
+
+Data                               Long   ->   Wide
+-----------------------------------------------------------------------------
+Number of observations                2   ->   2           
+Number of variables                  13   ->   17          
+j variable (2 values)             TREAT   ->   (dropped)
+xij variables:
+                       change_rGDP_FULL   ->   change_rGDP_FULLCRI change_rGDP_FULLROW
+                         change_Xi_FULL   ->   change_Xi_FULLCRI change_Xi_FULLROW
+                         change_Ti_FULL   ->   change_Ti_FULLCRI change_Ti_FULLROW
+                      change_price_FULL   ->   change_price_FULLCRI change_price_FULLROW
+                        change_IMR_FULL   ->   change_IMR_FULLCRI change_IMR_FULLROW
+-----------------------------------------------------------------------------
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//CRI//GE_EXT1_2022.xlsx saved
+(This version  08:00:15   7 Jun 2024 )
+(125 missing values generated)
+variable TREAT was str1 now str3
+(1 real change made)
+(124 real changes made)
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                            41
+        from master                         0  (_merge==1)
+        from using                         41  (_merge==2)
+
+    Matched                               125  (_merge==3)
+    -----------------------------------------
+(41 observations deleted)
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//CRI//Country_GE_EXT1_2022.xlsx saved
+(This version  08:00:15   7 Jun 2024 )
+(125 missing values generated)
+variable TREAT was str1 now str3
+(1 real change made)
+(124 real changes made)
+
+    Variable |        Obs        Mean    Std. dev.       Min        Max
+-------------+---------------------------------------------------------
+ replication |        125           3           0          3          3
+(j = CRI ROW)
+
+Data                               Long   ->   Wide
+-----------------------------------------------------------------------------
+Number of observations                2   ->   2           
+Number of variables                  13   ->   17          
+j variable (2 values)             TREAT   ->   (dropped)
+xij variables:
+                       change_rGDP_FULL   ->   change_rGDP_FULLCRI change_rGDP_FULLROW
+                         change_Xi_FULL   ->   change_Xi_FULLCRI change_Xi_FULLROW
+                         change_Ti_FULL   ->   change_Ti_FULLCRI change_Ti_FULLROW
+                      change_price_FULL   ->   change_price_FULLCRI change_price_FULLROW
+                        change_IMR_FULL   ->   change_IMR_FULLCRI change_IMR_FULLROW
+-----------------------------------------------------------------------------
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//CRI//GE_EXT1_2022.xlsx saved
+(This version  08:00:15   7 Jun 2024 )
+(125 missing values generated)
+variable TREAT was str1 now str3
+(1 real change made)
+(124 real changes made)
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                            41
+        from master                         0  (_merge==1)
+        from using                         41  (_merge==2)
+
+    Matched                               125  (_merge==3)
+    -----------------------------------------
+(41 observations deleted)
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//CRI//Country_GE_EXT1_2022.xlsx saved
+(This version  08:00:15   7 Jun 2024 )
+(125 missing values generated)
+variable TREAT was str1 now str3
+(1 real change made)
+(124 real changes made)
+
+    Variable |        Obs        Mean    Std. dev.       Min        Max
+-------------+---------------------------------------------------------
+ replication |        125           3           0          3          3
+(j = CRI ROW)
+
+Data                               Long   ->   Wide
+-----------------------------------------------------------------------------
+Number of observations                2   ->   2           
+Number of variables                  13   ->   17          
+j variable (2 values)             TREAT   ->   (dropped)
+xij variables:
+                       change_rGDP_FULL   ->   change_rGDP_FULLCRI change_rGDP_FULLROW
+                         change_Xi_FULL   ->   change_Xi_FULLCRI change_Xi_FULLROW
+                         change_Ti_FULL   ->   change_Ti_FULLCRI change_Ti_FULLROW
+                      change_price_FULL   ->   change_price_FULLCRI change_price_FULLROW
+                        change_IMR_FULL   ->   change_IMR_FULLCRI change_IMR_FULLROW
+-----------------------------------------------------------------------------
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//CRI//GE_EXT1_2022.xlsx saved
+(This version  08:00:15   7 Jun 2024 )
+(125 missing values generated)
+variable TREAT was str1 now str3
+(1 real change made)
+(124 real changes made)
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                            41
+        from master                         0  (_merge==1)
+        from using                         41  (_merge==2)
+
+    Matched                               125  (_merge==3)
+    -----------------------------------------
+(41 observations deleted)
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//CRI//Country_GE_EXT1_2022.xlsx saved
+(This version  08:00:15   7 Jun 2024 )
+(125 missing values generated)
+variable TREAT was str1 now str3
+(1 real change made)
+(124 real changes made)
+
+    Variable |        Obs        Mean    Std. dev.       Min        Max
+-------------+---------------------------------------------------------
+ replication |        125           3           0          3          3
+(j = CRI ROW)
+
+Data                               Long   ->   Wide
+-----------------------------------------------------------------------------
+Number of observations                2   ->   2           
+Number of variables                  13   ->   17          
+j variable (2 values)             TREAT   ->   (dropped)
+xij variables:
+                       change_rGDP_FULL   ->   change_rGDP_FULLCRI change_rGDP_FULLROW
+                         change_Xi_FULL   ->   change_Xi_FULLCRI change_Xi_FULLROW
+                         change_Ti_FULL   ->   change_Ti_FULLCRI change_Ti_FULLROW
+                      change_price_FULL   ->   change_price_FULLCRI change_price_FULLROW
+                        change_IMR_FULL   ->   change_IMR_FULLCRI change_IMR_FULLROW
+-----------------------------------------------------------------------------
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//CRI//GE_EXT1_2022.xlsx saved
+(This version  08:00:15   7 Jun 2024 )
+(125 missing values generated)
+variable TREAT was str1 now str3
+(1 real change made)
+(124 real changes made)
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                            41
+        from master                         0  (_merge==1)
+        from using                         41  (_merge==2)
+
+    Matched                               125  (_merge==3)
+    -----------------------------------------
+(41 observations deleted)
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//CRI//Country_GE_EXT1_2022.xlsx saved
+(This version  08:00:15   7 Jun 2024 )
+(125 missing values generated)
+variable TREAT was str1 now str3
+(1 real change made)
+(124 real changes made)
+
+    Variable |        Obs        Mean    Std. dev.       Min        Max
+-------------+---------------------------------------------------------
+ replication |        125           3           0          3          3
+(j = CRI ROW)
+
+Data                               Long   ->   Wide
+-----------------------------------------------------------------------------
+Number of observations                2   ->   2           
+Number of variables                  13   ->   17          
+j variable (2 values)             TREAT   ->   (dropped)
+xij variables:
+                       change_rGDP_FULL   ->   change_rGDP_FULLCRI change_rGDP_FULLROW
+                         change_Xi_FULL   ->   change_Xi_FULLCRI change_Xi_FULLROW
+                         change_Ti_FULL   ->   change_Ti_FULLCRI change_Ti_FULLROW
+                      change_price_FULL   ->   change_price_FULLCRI change_price_FULLROW
+                        change_IMR_FULL   ->   change_IMR_FULLCRI change_IMR_FULLROW
+-----------------------------------------------------------------------------
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//CRI//GE_EXT1_2022.xlsx saved
+(This version  08:00:15   7 Jun 2024 )
+(125 missing values generated)
+variable TREAT was str1 now str3
+(1 real change made)
+(124 real changes made)
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                            41
+        from master                         0  (_merge==1)
+        from using                         41  (_merge==2)
+
+    Matched                               125  (_merge==3)
+    -----------------------------------------
+(41 observations deleted)
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//CRI//Country_GE_EXT1_2022.xlsx saved
+(This version  08:00:15   7 Jun 2024 )
+(125 missing values generated)
+variable TREAT was str1 now str3
+(1 real change made)
+(124 real changes made)
+
+    Variable |        Obs        Mean    Std. dev.       Min        Max
+-------------+---------------------------------------------------------
+ replication |        125           3           0          3          3
+(j = CRI ROW)
+
+Data                               Long   ->   Wide
+-----------------------------------------------------------------------------
+Number of observations                2   ->   2           
+Number of variables                  13   ->   17          
+j variable (2 values)             TREAT   ->   (dropped)
+xij variables:
+                       change_rGDP_FULL   ->   change_rGDP_FULLCRI change_rGDP_FULLROW
+                         change_Xi_FULL   ->   change_Xi_FULLCRI change_Xi_FULLROW
+                         change_Ti_FULL   ->   change_Ti_FULLCRI change_Ti_FULLROW
+                      change_price_FULL   ->   change_price_FULLCRI change_price_FULLROW
+                        change_IMR_FULL   ->   change_IMR_FULLCRI change_IMR_FULLROW
+-----------------------------------------------------------------------------
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//CRI//GE_EXT1_2022.xlsx saved
+(This version  08:00:15   7 Jun 2024 )
+(125 missing values generated)
+variable TREAT was str1 now str3
+(1 real change made)
+(124 real changes made)
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                            41
+        from master                         0  (_merge==1)
+        from using                         41  (_merge==2)
+
+    Matched                               125  (_merge==3)
+    -----------------------------------------
+(41 observations deleted)
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//CRI//Country_GE_EXT1_2022.xlsx saved
+(This version  08:00:15   7 Jun 2024 )
+(125 missing values generated)
+variable TREAT was str1 now str3
+(1 real change made)
+(124 real changes made)
+
+    Variable |        Obs        Mean    Std. dev.       Min        Max
+-------------+---------------------------------------------------------
+ replication |        125           3           0          3          3
+(j = CRI ROW)
+
+Data                               Long   ->   Wide
+-----------------------------------------------------------------------------
+Number of observations                2   ->   2           
+Number of variables                  13   ->   17          
+j variable (2 values)             TREAT   ->   (dropped)
+xij variables:
+                       change_rGDP_FULL   ->   change_rGDP_FULLCRI change_rGDP_FULLROW
+                         change_Xi_FULL   ->   change_Xi_FULLCRI change_Xi_FULLROW
+                         change_Ti_FULL   ->   change_Ti_FULLCRI change_Ti_FULLROW
+                      change_price_FULL   ->   change_price_FULLCRI change_price_FULLROW
+                        change_IMR_FULL   ->   change_IMR_FULLCRI change_IMR_FULLROW
+-----------------------------------------------------------------------------
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//CRI//GE_EXT1_2022.xlsx saved
+(This version  08:00:15   7 Jun 2024 )
+(125 missing values generated)
+variable TREAT was str1 now str3
+(1 real change made)
+(124 real changes made)
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                            41
+        from master                         0  (_merge==1)
+        from using                         41  (_merge==2)
+
+    Matched                               125  (_merge==3)
+    -----------------------------------------
+(41 observations deleted)
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//CRI//Country_GE_EXT1_2022.xlsx saved
+(This version  08:00:15   7 Jun 2024 )
+(125 missing values generated)
+variable TREAT was str1 now str3
+(1 real change made)
+(124 real changes made)
+
+    Variable |        Obs        Mean    Std. dev.       Min        Max
+-------------+---------------------------------------------------------
+ replication |        125           3           0          3          3
+(j = CRI ROW)
+
+Data                               Long   ->   Wide
+-----------------------------------------------------------------------------
+Number of observations                2   ->   2           
+Number of variables                  13   ->   17          
+j variable (2 values)             TREAT   ->   (dropped)
+xij variables:
+                       change_rGDP_FULL   ->   change_rGDP_FULLCRI change_rGDP_FULLROW
+                         change_Xi_FULL   ->   change_Xi_FULLCRI change_Xi_FULLROW
+                         change_Ti_FULL   ->   change_Ti_FULLCRI change_Ti_FULLROW
+                      change_price_FULL   ->   change_price_FULLCRI change_price_FULLROW
+                        change_IMR_FULL   ->   change_IMR_FULLCRI change_IMR_FULLROW
+-----------------------------------------------------------------------------
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//CRI//GE_EXT1_2022.xlsx saved
+(This version  08:00:15   7 Jun 2024 )
+(125 missing values generated)
+variable TREAT was str1 now str3
+(1 real change made)
+(124 real changes made)
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                            41
+        from master                         0  (_merge==1)
+        from using                         41  (_merge==2)
+
+    Matched                               125  (_merge==3)
+    -----------------------------------------
+(41 observations deleted)
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//CRI//Country_GE_EXT1_2022.xlsx saved
+
+. 
+. ********************************************************************************
+. ********************************************************************************
+. * Read Results files
+. 
+. cd "$RES//`iso'//temp/"
+d:\santoni\Dropbox\WW_other_projs\WB_2024\WB_GE\WB_DTA_Toolkit\2.res\toolkit\CRI\temp
+
+. 
+. 
+. local ext : dir "`c(pwd)'"  files "*EXT2*.dta" 
+
+. 
+. 
+. 
+. local s = 1 
+
+.  
+. foreach file in  `ext' {
+  2. 
+. ********************************************************************************
+. * Format Table
+. local sigma $sigma 
+  3. local X     $year_reg
+  4. 
+. use  `file' , clear
+  5.  
+. 
+.    gen  TREAT                    = ""
+  6. replace TREAT                    = "`iso'" if (iso_o    == "`iso'")
+  7. replace TREAT                    = "ROW"   if (iso_o    != "`iso'")
+  8. 
+. 
+. 
+. summ replication
+  9. global rep = `r(mean)'
+ 10. 
+. local cty                               =count[1]   
+ 11. local type              =type[1]   
+ 12. local counterfactual    = "`cty'_`type'"
+ 13. 
+. ********************************************************************************
+. ********************************************************************************
+. 
+.   
+.  
+. 
+. collapse (sum) rGDP_FULL  rGDP_BLN  Xi_FULL  Xi_BLN Ti_FULL  Ti_BLN (mean) change_price_FULL change_IMR_FULL, by(TREAT)
+ 14. 
+.   
+. gen change_rGDP_FULL            = ( rGDP_FULL  - rGDP_BLN    )/ rGDP_BLN    *100
+ 15. 
+. gen change_Xi_FULL              = (Xi_FULL     - Xi_BLN      )/ Xi_BLN      *100
+ 16. 
+. gen change_Ti_FULL              = (Ti_FULL     - Ti_BLN      )/ Ti_BLN      *100
+ 17. 
+. 
+. gen id = _n
+ 18. 
+. reshape wide change_rGDP change_Xi change_Ti change_price_FULL change_IMR_FULL, i(id) j(TREAT) string
+ 19. 
+. keep change_*
+ 20.  
+.  
+. order  change_Xi_FULL`iso' change_rGDP_FULL`iso' change_price_FULL`iso' change_IMR_FULL`iso' change_Xi_FULLROW change_rGDP_FULLROW change_Ti_FULL`iso'  change_pr
+> ice_FULLROW change_IMR_FULLROW
+ 21.  
+. ********************************************************************************
+. ********************************************************************************
+. 
+.  
+. if `s' == 1 {
+ 22. export excel  "$RES//`iso'//GE_EXT2_`X'.xlsx", sheet("`counterfactual'")  firstrow(variables) nolabel  replace
+ 23. }
+ 24. 
+. 
+. if `s' > 1 {
+ 25. export excel  "$RES//`iso'//GE_EXT2_`X'.xlsx", sheet("`counterfactual'")  firstrow(variables) nolabel sheetreplace
+ 26. 
+. }
+ 27. 
+. ********************************************************************************
+. ********************************************************************************
+. ********************************************************************************
+. ********************************************************************************
+. 
+. 
+. 
+. use  `file' , clear
+ 28. 
+.    gen  TREAT   = ""
+ 29. replace TREAT   = "`iso'" if (iso_o    == "`iso'")
+ 30. replace TREAT   = "ROW"   if (iso_o    != "`iso'")
+ 31. 
+.  
+. keep country change_* TREAT 
+ 32. 
+. merge m:1 country using "$CTY/temp_cty_name" , keepusing(country_name)
+ 33. keep if _m==3
+ 34. drop _m
+ 35. 
+. 
+. 
+. sort  country_name
+ 36. 
+. keep    country_name country  change_Xi_FULL change_rGDP_FULL change_price_FULL change_IMR_FULL  TREAT change_Ti_FULL
+ 37. order   country_name country  change_Xi_FULL change_rGDP_FULL change_price_FULL change_IMR_FULL  TREAT change_Ti_FULL
+ 38.  
+. if `s' == 1 {
+ 39. export excel  "$RES//`iso'//Country_GE_EXT2_`X'.xlsx", sheet("`counterfactual'_CTY")  firstrow(variables) nolabel  replace
+ 40. }
+ 41. 
+. 
+. if `s' > 1 {
+ 42. export excel  "$RES//`iso'//Country_GE_EXT2_`X'.xlsx", sheet("`counterfactual'_CTY")  firstrow(variables) nolabel sheetreplace
+ 43. }
+ 44. 
+. 
+.  local s = `s' + 1
+ 45. 
+. }
+(This version  08:00:15   7 Jun 2024 )
+(125 missing values generated)
+variable TREAT was str1 now str3
+(1 real change made)
+(124 real changes made)
+
+    Variable |        Obs        Mean    Std. dev.       Min        Max
+-------------+---------------------------------------------------------
+ replication |        125           3           0          3          3
+(j = CRI ROW)
+
+Data                               Long   ->   Wide
+-----------------------------------------------------------------------------
+Number of observations                2   ->   2           
+Number of variables                  13   ->   17          
+j variable (2 values)             TREAT   ->   (dropped)
+xij variables:
+                       change_rGDP_FULL   ->   change_rGDP_FULLCRI change_rGDP_FULLROW
+                         change_Xi_FULL   ->   change_Xi_FULLCRI change_Xi_FULLROW
+                         change_Ti_FULL   ->   change_Ti_FULLCRI change_Ti_FULLROW
+                      change_price_FULL   ->   change_price_FULLCRI change_price_FULLROW
+                        change_IMR_FULL   ->   change_IMR_FULLCRI change_IMR_FULLROW
+-----------------------------------------------------------------------------
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//CRI//GE_EXT2_2022.xlsx saved
+(This version  08:00:15   7 Jun 2024 )
+(125 missing values generated)
+variable TREAT was str1 now str3
+(1 real change made)
+(124 real changes made)
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                            41
+        from master                         0  (_merge==1)
+        from using                         41  (_merge==2)
+
+    Matched                               125  (_merge==3)
+    -----------------------------------------
+(41 observations deleted)
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//CRI//Country_GE_EXT2_2022.xlsx saved
+(This version  08:00:15   7 Jun 2024 )
+(125 missing values generated)
+variable TREAT was str1 now str3
+(1 real change made)
+(124 real changes made)
+
+    Variable |        Obs        Mean    Std. dev.       Min        Max
+-------------+---------------------------------------------------------
+ replication |        125           3           0          3          3
+(j = CRI ROW)
+
+Data                               Long   ->   Wide
+-----------------------------------------------------------------------------
+Number of observations                2   ->   2           
+Number of variables                  13   ->   17          
+j variable (2 values)             TREAT   ->   (dropped)
+xij variables:
+                       change_rGDP_FULL   ->   change_rGDP_FULLCRI change_rGDP_FULLROW
+                         change_Xi_FULL   ->   change_Xi_FULLCRI change_Xi_FULLROW
+                         change_Ti_FULL   ->   change_Ti_FULLCRI change_Ti_FULLROW
+                      change_price_FULL   ->   change_price_FULLCRI change_price_FULLROW
+                        change_IMR_FULL   ->   change_IMR_FULLCRI change_IMR_FULLROW
+-----------------------------------------------------------------------------
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//CRI//GE_EXT2_2022.xlsx saved
+(This version  08:00:15   7 Jun 2024 )
+(125 missing values generated)
+variable TREAT was str1 now str3
+(1 real change made)
+(124 real changes made)
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                            41
+        from master                         0  (_merge==1)
+        from using                         41  (_merge==2)
+
+    Matched                               125  (_merge==3)
+    -----------------------------------------
+(41 observations deleted)
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//CRI//Country_GE_EXT2_2022.xlsx saved
+(This version  08:00:15   7 Jun 2024 )
+(125 missing values generated)
+variable TREAT was str1 now str3
+(1 real change made)
+(124 real changes made)
+
+    Variable |        Obs        Mean    Std. dev.       Min        Max
+-------------+---------------------------------------------------------
+ replication |        125           3           0          3          3
+(j = CRI ROW)
+
+Data                               Long   ->   Wide
+-----------------------------------------------------------------------------
+Number of observations                2   ->   2           
+Number of variables                  13   ->   17          
+j variable (2 values)             TREAT   ->   (dropped)
+xij variables:
+                       change_rGDP_FULL   ->   change_rGDP_FULLCRI change_rGDP_FULLROW
+                         change_Xi_FULL   ->   change_Xi_FULLCRI change_Xi_FULLROW
+                         change_Ti_FULL   ->   change_Ti_FULLCRI change_Ti_FULLROW
+                      change_price_FULL   ->   change_price_FULLCRI change_price_FULLROW
+                        change_IMR_FULL   ->   change_IMR_FULLCRI change_IMR_FULLROW
+-----------------------------------------------------------------------------
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//CRI//GE_EXT2_2022.xlsx saved
+(This version  08:00:15   7 Jun 2024 )
+(125 missing values generated)
+variable TREAT was str1 now str3
+(1 real change made)
+(124 real changes made)
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                            41
+        from master                         0  (_merge==1)
+        from using                         41  (_merge==2)
+
+    Matched                               125  (_merge==3)
+    -----------------------------------------
+(41 observations deleted)
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//CRI//Country_GE_EXT2_2022.xlsx saved
+(This version  08:00:15   7 Jun 2024 )
+(125 missing values generated)
+variable TREAT was str1 now str3
+(1 real change made)
+(124 real changes made)
+
+    Variable |        Obs        Mean    Std. dev.       Min        Max
+-------------+---------------------------------------------------------
+ replication |        125           3           0          3          3
+(j = CRI ROW)
+
+Data                               Long   ->   Wide
+-----------------------------------------------------------------------------
+Number of observations                2   ->   2           
+Number of variables                  13   ->   17          
+j variable (2 values)             TREAT   ->   (dropped)
+xij variables:
+                       change_rGDP_FULL   ->   change_rGDP_FULLCRI change_rGDP_FULLROW
+                         change_Xi_FULL   ->   change_Xi_FULLCRI change_Xi_FULLROW
+                         change_Ti_FULL   ->   change_Ti_FULLCRI change_Ti_FULLROW
+                      change_price_FULL   ->   change_price_FULLCRI change_price_FULLROW
+                        change_IMR_FULL   ->   change_IMR_FULLCRI change_IMR_FULLROW
+-----------------------------------------------------------------------------
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//CRI//GE_EXT2_2022.xlsx saved
+(This version  08:00:15   7 Jun 2024 )
+(125 missing values generated)
+variable TREAT was str1 now str3
+(1 real change made)
+(124 real changes made)
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                            41
+        from master                         0  (_merge==1)
+        from using                         41  (_merge==2)
+
+    Matched                               125  (_merge==3)
+    -----------------------------------------
+(41 observations deleted)
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//CRI//Country_GE_EXT2_2022.xlsx saved
+(This version  08:00:15   7 Jun 2024 )
+(125 missing values generated)
+variable TREAT was str1 now str3
+(1 real change made)
+(124 real changes made)
+
+    Variable |        Obs        Mean    Std. dev.       Min        Max
+-------------+---------------------------------------------------------
+ replication |        125           3           0          3          3
+(j = CRI ROW)
+
+Data                               Long   ->   Wide
+-----------------------------------------------------------------------------
+Number of observations                2   ->   2           
+Number of variables                  13   ->   17          
+j variable (2 values)             TREAT   ->   (dropped)
+xij variables:
+                       change_rGDP_FULL   ->   change_rGDP_FULLCRI change_rGDP_FULLROW
+                         change_Xi_FULL   ->   change_Xi_FULLCRI change_Xi_FULLROW
+                         change_Ti_FULL   ->   change_Ti_FULLCRI change_Ti_FULLROW
+                      change_price_FULL   ->   change_price_FULLCRI change_price_FULLROW
+                        change_IMR_FULL   ->   change_IMR_FULLCRI change_IMR_FULLROW
+-----------------------------------------------------------------------------
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//CRI//GE_EXT2_2022.xlsx saved
+(This version  08:00:15   7 Jun 2024 )
+(125 missing values generated)
+variable TREAT was str1 now str3
+(1 real change made)
+(124 real changes made)
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                            41
+        from master                         0  (_merge==1)
+        from using                         41  (_merge==2)
+
+    Matched                               125  (_merge==3)
+    -----------------------------------------
+(41 observations deleted)
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//CRI//Country_GE_EXT2_2022.xlsx saved
+(This version  08:00:15   7 Jun 2024 )
+(125 missing values generated)
+variable TREAT was str1 now str3
+(1 real change made)
+(124 real changes made)
+
+    Variable |        Obs        Mean    Std. dev.       Min        Max
+-------------+---------------------------------------------------------
+ replication |        125           3           0          3          3
+(j = CRI ROW)
+
+Data                               Long   ->   Wide
+-----------------------------------------------------------------------------
+Number of observations                2   ->   2           
+Number of variables                  13   ->   17          
+j variable (2 values)             TREAT   ->   (dropped)
+xij variables:
+                       change_rGDP_FULL   ->   change_rGDP_FULLCRI change_rGDP_FULLROW
+                         change_Xi_FULL   ->   change_Xi_FULLCRI change_Xi_FULLROW
+                         change_Ti_FULL   ->   change_Ti_FULLCRI change_Ti_FULLROW
+                      change_price_FULL   ->   change_price_FULLCRI change_price_FULLROW
+                        change_IMR_FULL   ->   change_IMR_FULLCRI change_IMR_FULLROW
+-----------------------------------------------------------------------------
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//CRI//GE_EXT2_2022.xlsx saved
+(This version  08:00:15   7 Jun 2024 )
+(125 missing values generated)
+variable TREAT was str1 now str3
+(1 real change made)
+(124 real changes made)
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                            41
+        from master                         0  (_merge==1)
+        from using                         41  (_merge==2)
+
+    Matched                               125  (_merge==3)
+    -----------------------------------------
+(41 observations deleted)
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//CRI//Country_GE_EXT2_2022.xlsx saved
+(This version  08:00:15   7 Jun 2024 )
+(125 missing values generated)
+variable TREAT was str1 now str3
+(1 real change made)
+(124 real changes made)
+
+    Variable |        Obs        Mean    Std. dev.       Min        Max
+-------------+---------------------------------------------------------
+ replication |        125           3           0          3          3
+(j = CRI ROW)
+
+Data                               Long   ->   Wide
+-----------------------------------------------------------------------------
+Number of observations                2   ->   2           
+Number of variables                  13   ->   17          
+j variable (2 values)             TREAT   ->   (dropped)
+xij variables:
+                       change_rGDP_FULL   ->   change_rGDP_FULLCRI change_rGDP_FULLROW
+                         change_Xi_FULL   ->   change_Xi_FULLCRI change_Xi_FULLROW
+                         change_Ti_FULL   ->   change_Ti_FULLCRI change_Ti_FULLROW
+                      change_price_FULL   ->   change_price_FULLCRI change_price_FULLROW
+                        change_IMR_FULL   ->   change_IMR_FULLCRI change_IMR_FULLROW
+-----------------------------------------------------------------------------
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//CRI//GE_EXT2_2022.xlsx saved
+(This version  08:00:15   7 Jun 2024 )
+(125 missing values generated)
+variable TREAT was str1 now str3
+(1 real change made)
+(124 real changes made)
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                            41
+        from master                         0  (_merge==1)
+        from using                         41  (_merge==2)
+
+    Matched                               125  (_merge==3)
+    -----------------------------------------
+(41 observations deleted)
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//CRI//Country_GE_EXT2_2022.xlsx saved
+(This version  08:00:15   7 Jun 2024 )
+(125 missing values generated)
+variable TREAT was str1 now str3
+(1 real change made)
+(124 real changes made)
+
+    Variable |        Obs        Mean    Std. dev.       Min        Max
+-------------+---------------------------------------------------------
+ replication |        125           3           0          3          3
+(j = CRI ROW)
+
+Data                               Long   ->   Wide
+-----------------------------------------------------------------------------
+Number of observations                2   ->   2           
+Number of variables                  13   ->   17          
+j variable (2 values)             TREAT   ->   (dropped)
+xij variables:
+                       change_rGDP_FULL   ->   change_rGDP_FULLCRI change_rGDP_FULLROW
+                         change_Xi_FULL   ->   change_Xi_FULLCRI change_Xi_FULLROW
+                         change_Ti_FULL   ->   change_Ti_FULLCRI change_Ti_FULLROW
+                      change_price_FULL   ->   change_price_FULLCRI change_price_FULLROW
+                        change_IMR_FULL   ->   change_IMR_FULLCRI change_IMR_FULLROW
+-----------------------------------------------------------------------------
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//CRI//GE_EXT2_2022.xlsx saved
+(This version  08:00:15   7 Jun 2024 )
+(125 missing values generated)
+variable TREAT was str1 now str3
+(1 real change made)
+(124 real changes made)
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                            41
+        from master                         0  (_merge==1)
+        from using                         41  (_merge==2)
+
+    Matched                               125  (_merge==3)
+    -----------------------------------------
+(41 observations deleted)
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//CRI//Country_GE_EXT2_2022.xlsx saved
+(This version  08:00:15   7 Jun 2024 )
+(125 missing values generated)
+variable TREAT was str1 now str3
+(1 real change made)
+(124 real changes made)
+
+    Variable |        Obs        Mean    Std. dev.       Min        Max
+-------------+---------------------------------------------------------
+ replication |        125           3           0          3          3
+(j = CRI ROW)
+
+Data                               Long   ->   Wide
+-----------------------------------------------------------------------------
+Number of observations                2   ->   2           
+Number of variables                  13   ->   17          
+j variable (2 values)             TREAT   ->   (dropped)
+xij variables:
+                       change_rGDP_FULL   ->   change_rGDP_FULLCRI change_rGDP_FULLROW
+                         change_Xi_FULL   ->   change_Xi_FULLCRI change_Xi_FULLROW
+                         change_Ti_FULL   ->   change_Ti_FULLCRI change_Ti_FULLROW
+                      change_price_FULL   ->   change_price_FULLCRI change_price_FULLROW
+                        change_IMR_FULL   ->   change_IMR_FULLCRI change_IMR_FULLROW
+-----------------------------------------------------------------------------
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//CRI//GE_EXT2_2022.xlsx saved
+(This version  08:00:15   7 Jun 2024 )
+(125 missing values generated)
+variable TREAT was str1 now str3
+(1 real change made)
+(124 real changes made)
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                            41
+        from master                         0  (_merge==1)
+        from using                         41  (_merge==2)
+
+    Matched                               125  (_merge==3)
+    -----------------------------------------
+(41 observations deleted)
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//CRI//Country_GE_EXT2_2022.xlsx saved
+(This version  08:00:15   7 Jun 2024 )
+(125 missing values generated)
+variable TREAT was str1 now str3
+(1 real change made)
+(124 real changes made)
+
+    Variable |        Obs        Mean    Std. dev.       Min        Max
+-------------+---------------------------------------------------------
+ replication |        125           3           0          3          3
+(j = CRI ROW)
+
+Data                               Long   ->   Wide
+-----------------------------------------------------------------------------
+Number of observations                2   ->   2           
+Number of variables                  13   ->   17          
+j variable (2 values)             TREAT   ->   (dropped)
+xij variables:
+                       change_rGDP_FULL   ->   change_rGDP_FULLCRI change_rGDP_FULLROW
+                         change_Xi_FULL   ->   change_Xi_FULLCRI change_Xi_FULLROW
+                         change_Ti_FULL   ->   change_Ti_FULLCRI change_Ti_FULLROW
+                      change_price_FULL   ->   change_price_FULLCRI change_price_FULLROW
+                        change_IMR_FULL   ->   change_IMR_FULLCRI change_IMR_FULLROW
+-----------------------------------------------------------------------------
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//CRI//GE_EXT2_2022.xlsx saved
+(This version  08:00:15   7 Jun 2024 )
+(125 missing values generated)
+variable TREAT was str1 now str3
+(1 real change made)
+(124 real changes made)
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                            41
+        from master                         0  (_merge==1)
+        from using                         41  (_merge==2)
+
+    Matched                               125  (_merge==3)
+    -----------------------------------------
+(41 observations deleted)
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//CRI//Country_GE_EXT2_2022.xlsx saved
+
+. 
+. ********************************************************************************
+. ********************************************************************************
+. * Read Results files
+. 
+. cd "$RES//`iso'//temp/"
+d:\santoni\Dropbox\WW_other_projs\WB_2024\WB_GE\WB_DTA_Toolkit\2.res\toolkit\CRI\temp
+
+. 
+. 
+. local ext : dir "`c(pwd)'"  files "*EXT3*.dta" 
+
+. 
+. 
+. 
+. local s = 1 
+
+.  
+. foreach file in  `ext' {
+  2. 
+. ********************************************************************************
+. * Format Table
+. local sigma $sigma 
+  3. local X     $year_reg
+  4. 
+. use  `file' , clear
+  5.  
+. 
+.    gen  TREAT                    = ""
+  6. replace TREAT                    = "`iso'" if (iso_o    == "`iso'")
+  7. replace TREAT                    = "ROW"   if (iso_o    != "`iso'")
+  8. 
+. 
+. 
+. summ replication
+  9. global rep = `r(mean)'
+ 10. 
+. local cty                               =count[1]   
+ 11. local type              =type[1]   
+ 12. local counterfactual    = "`cty'_`type'"
+ 13. 
+. ********************************************************************************
+. ********************************************************************************
+. 
+.   
+.  
+. 
+. collapse (sum) rGDP_FULL  rGDP_BLN  Xi_FULL  Xi_BLN Ti_FULL  Ti_BLN (mean) change_price_FULL change_IMR_FULL, by(TREAT)
+ 14. 
+.   
+. gen change_rGDP_FULL            = ( rGDP_FULL  - rGDP_BLN    )/ rGDP_BLN    *100
+ 15. 
+. gen change_Xi_FULL              = (Xi_FULL     - Xi_BLN      )/ Xi_BLN      *100
+ 16. 
+. gen change_Ti_FULL              = (Ti_FULL     - Ti_BLN      )/ Ti_BLN      *100
+ 17. 
+. 
+. gen id = _n
+ 18. 
+. reshape wide change_rGDP change_Xi change_Ti change_price_FULL change_IMR_FULL, i(id) j(TREAT) string
+ 19. 
+. keep change_*
+ 20.  
+.  
+. order  change_Xi_FULL`iso' change_rGDP_FULL`iso' change_price_FULL`iso' change_IMR_FULL`iso' change_Xi_FULLROW change_rGDP_FULLROW change_Ti_FULL`iso'  change_pr
+> ice_FULLROW change_IMR_FULLROW
+ 21.  
+. ********************************************************************************
+. ********************************************************************************
+. 
+.  
+. if `s' == 1 {
+ 22. export excel  "$RES//`iso'//GE_EXT3_`X'.xlsx", sheet("`counterfactual'")  firstrow(variables) nolabel  replace
+ 23. }
+ 24. 
+. 
+. if `s' > 1 {
+ 25. export excel  "$RES//`iso'//GE_EXT3_`X'.xlsx", sheet("`counterfactual'")  firstrow(variables) nolabel sheetreplace
+ 26. 
+. }
+ 27. 
+. ********************************************************************************
+. ********************************************************************************
+. ********************************************************************************
+. ********************************************************************************
+. 
+. 
+. 
+. use  `file' , clear
+ 28. 
+.    gen  TREAT   = ""
+ 29. replace TREAT   = "`iso'" if (iso_o    == "`iso'")
+ 30. replace TREAT   = "ROW"   if (iso_o    != "`iso'")
+ 31. 
+.  
+. keep country change_* TREAT 
+ 32. 
+. merge m:1 country using "$CTY/temp_cty_name" , keepusing(country_name)
+ 33. keep if _m==3
+ 34. drop _m
+ 35. 
+. 
+. 
+. sort  country_name
+ 36. 
+. keep    country_name country  change_Xi_FULL change_rGDP_FULL change_price_FULL change_IMR_FULL  TREAT change_Ti_FULL
+ 37. order   country_name country  change_Xi_FULL change_rGDP_FULL change_price_FULL change_IMR_FULL  TREAT change_Ti_FULL
+ 38.  
+. if `s' == 1 {
+ 39. export excel  "$RES//`iso'//Country_GE_EXT3_`X'.xlsx", sheet("`counterfactual'_CTY")  firstrow(variables) nolabel  replace
+ 40. }
+ 41. 
+. 
+. if `s' > 1 {
+ 42. export excel  "$RES//`iso'//Country_GE_EXT3_`X'.xlsx", sheet("`counterfactual'_CTY")  firstrow(variables) nolabel sheetreplace
+ 43. }
+ 44. 
+. 
+.  local s = `s' + 1
+ 45. 
+. }
+(This version  08:00:15   7 Jun 2024 )
+(125 missing values generated)
+variable TREAT was str1 now str3
+(1 real change made)
+(124 real changes made)
+
+    Variable |        Obs        Mean    Std. dev.       Min        Max
+-------------+---------------------------------------------------------
+ replication |        125           3           0          3          3
+(j = CRI ROW)
+
+Data                               Long   ->   Wide
+-----------------------------------------------------------------------------
+Number of observations                2   ->   2           
+Number of variables                  13   ->   17          
+j variable (2 values)             TREAT   ->   (dropped)
+xij variables:
+                       change_rGDP_FULL   ->   change_rGDP_FULLCRI change_rGDP_FULLROW
+                         change_Xi_FULL   ->   change_Xi_FULLCRI change_Xi_FULLROW
+                         change_Ti_FULL   ->   change_Ti_FULLCRI change_Ti_FULLROW
+                      change_price_FULL   ->   change_price_FULLCRI change_price_FULLROW
+                        change_IMR_FULL   ->   change_IMR_FULLCRI change_IMR_FULLROW
+-----------------------------------------------------------------------------
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//CRI//GE_EXT3_2022.xlsx saved
+(This version  08:00:15   7 Jun 2024 )
+(125 missing values generated)
+variable TREAT was str1 now str3
+(1 real change made)
+(124 real changes made)
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                            41
+        from master                         0  (_merge==1)
+        from using                         41  (_merge==2)
+
+    Matched                               125  (_merge==3)
+    -----------------------------------------
+(41 observations deleted)
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//CRI//Country_GE_EXT3_2022.xlsx saved
+(This version  08:00:15   7 Jun 2024 )
+(125 missing values generated)
+variable TREAT was str1 now str3
+(1 real change made)
+(124 real changes made)
+
+    Variable |        Obs        Mean    Std. dev.       Min        Max
+-------------+---------------------------------------------------------
+ replication |        125           3           0          3          3
+(j = CRI ROW)
+
+Data                               Long   ->   Wide
+-----------------------------------------------------------------------------
+Number of observations                2   ->   2           
+Number of variables                  13   ->   17          
+j variable (2 values)             TREAT   ->   (dropped)
+xij variables:
+                       change_rGDP_FULL   ->   change_rGDP_FULLCRI change_rGDP_FULLROW
+                         change_Xi_FULL   ->   change_Xi_FULLCRI change_Xi_FULLROW
+                         change_Ti_FULL   ->   change_Ti_FULLCRI change_Ti_FULLROW
+                      change_price_FULL   ->   change_price_FULLCRI change_price_FULLROW
+                        change_IMR_FULL   ->   change_IMR_FULLCRI change_IMR_FULLROW
+-----------------------------------------------------------------------------
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//CRI//GE_EXT3_2022.xlsx saved
+(This version  08:00:15   7 Jun 2024 )
+(125 missing values generated)
+variable TREAT was str1 now str3
+(1 real change made)
+(124 real changes made)
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                            41
+        from master                         0  (_merge==1)
+        from using                         41  (_merge==2)
+
+    Matched                               125  (_merge==3)
+    -----------------------------------------
+(41 observations deleted)
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//CRI//Country_GE_EXT3_2022.xlsx saved
+(This version  08:00:15   7 Jun 2024 )
+(125 missing values generated)
+variable TREAT was str1 now str3
+(1 real change made)
+(124 real changes made)
+
+    Variable |        Obs        Mean    Std. dev.       Min        Max
+-------------+---------------------------------------------------------
+ replication |        125           3           0          3          3
+(j = CRI ROW)
+
+Data                               Long   ->   Wide
+-----------------------------------------------------------------------------
+Number of observations                2   ->   2           
+Number of variables                  13   ->   17          
+j variable (2 values)             TREAT   ->   (dropped)
+xij variables:
+                       change_rGDP_FULL   ->   change_rGDP_FULLCRI change_rGDP_FULLROW
+                         change_Xi_FULL   ->   change_Xi_FULLCRI change_Xi_FULLROW
+                         change_Ti_FULL   ->   change_Ti_FULLCRI change_Ti_FULLROW
+                      change_price_FULL   ->   change_price_FULLCRI change_price_FULLROW
+                        change_IMR_FULL   ->   change_IMR_FULLCRI change_IMR_FULLROW
+-----------------------------------------------------------------------------
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//CRI//GE_EXT3_2022.xlsx saved
+(This version  08:00:15   7 Jun 2024 )
+(125 missing values generated)
+variable TREAT was str1 now str3
+(1 real change made)
+(124 real changes made)
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                            41
+        from master                         0  (_merge==1)
+        from using                         41  (_merge==2)
+
+    Matched                               125  (_merge==3)
+    -----------------------------------------
+(41 observations deleted)
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//CRI//Country_GE_EXT3_2022.xlsx saved
+(This version  08:00:15   7 Jun 2024 )
+(125 missing values generated)
+variable TREAT was str1 now str3
+(1 real change made)
+(124 real changes made)
+
+    Variable |        Obs        Mean    Std. dev.       Min        Max
+-------------+---------------------------------------------------------
+ replication |        125           3           0          3          3
+(j = CRI ROW)
+
+Data                               Long   ->   Wide
+-----------------------------------------------------------------------------
+Number of observations                2   ->   2           
+Number of variables                  13   ->   17          
+j variable (2 values)             TREAT   ->   (dropped)
+xij variables:
+                       change_rGDP_FULL   ->   change_rGDP_FULLCRI change_rGDP_FULLROW
+                         change_Xi_FULL   ->   change_Xi_FULLCRI change_Xi_FULLROW
+                         change_Ti_FULL   ->   change_Ti_FULLCRI change_Ti_FULLROW
+                      change_price_FULL   ->   change_price_FULLCRI change_price_FULLROW
+                        change_IMR_FULL   ->   change_IMR_FULLCRI change_IMR_FULLROW
+-----------------------------------------------------------------------------
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//CRI//GE_EXT3_2022.xlsx saved
+(This version  08:00:15   7 Jun 2024 )
+(125 missing values generated)
+variable TREAT was str1 now str3
+(1 real change made)
+(124 real changes made)
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                            41
+        from master                         0  (_merge==1)
+        from using                         41  (_merge==2)
+
+    Matched                               125  (_merge==3)
+    -----------------------------------------
+(41 observations deleted)
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//CRI//Country_GE_EXT3_2022.xlsx saved
+(This version  08:00:15   7 Jun 2024 )
+(125 missing values generated)
+variable TREAT was str1 now str3
+(1 real change made)
+(124 real changes made)
+
+    Variable |        Obs        Mean    Std. dev.       Min        Max
+-------------+---------------------------------------------------------
+ replication |        125           3           0          3          3
+(j = CRI ROW)
+
+Data                               Long   ->   Wide
+-----------------------------------------------------------------------------
+Number of observations                2   ->   2           
+Number of variables                  13   ->   17          
+j variable (2 values)             TREAT   ->   (dropped)
+xij variables:
+                       change_rGDP_FULL   ->   change_rGDP_FULLCRI change_rGDP_FULLROW
+                         change_Xi_FULL   ->   change_Xi_FULLCRI change_Xi_FULLROW
+                         change_Ti_FULL   ->   change_Ti_FULLCRI change_Ti_FULLROW
+                      change_price_FULL   ->   change_price_FULLCRI change_price_FULLROW
+                        change_IMR_FULL   ->   change_IMR_FULLCRI change_IMR_FULLROW
+-----------------------------------------------------------------------------
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//CRI//GE_EXT3_2022.xlsx saved
+(This version  08:00:15   7 Jun 2024 )
+(125 missing values generated)
+variable TREAT was str1 now str3
+(1 real change made)
+(124 real changes made)
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                            41
+        from master                         0  (_merge==1)
+        from using                         41  (_merge==2)
+
+    Matched                               125  (_merge==3)
+    -----------------------------------------
+(41 observations deleted)
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//CRI//Country_GE_EXT3_2022.xlsx saved
+(This version  08:00:15   7 Jun 2024 )
+(125 missing values generated)
+variable TREAT was str1 now str3
+(1 real change made)
+(124 real changes made)
+
+    Variable |        Obs        Mean    Std. dev.       Min        Max
+-------------+---------------------------------------------------------
+ replication |        125           3           0          3          3
+(j = CRI ROW)
+
+Data                               Long   ->   Wide
+-----------------------------------------------------------------------------
+Number of observations                2   ->   2           
+Number of variables                  13   ->   17          
+j variable (2 values)             TREAT   ->   (dropped)
+xij variables:
+                       change_rGDP_FULL   ->   change_rGDP_FULLCRI change_rGDP_FULLROW
+                         change_Xi_FULL   ->   change_Xi_FULLCRI change_Xi_FULLROW
+                         change_Ti_FULL   ->   change_Ti_FULLCRI change_Ti_FULLROW
+                      change_price_FULL   ->   change_price_FULLCRI change_price_FULLROW
+                        change_IMR_FULL   ->   change_IMR_FULLCRI change_IMR_FULLROW
+-----------------------------------------------------------------------------
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//CRI//GE_EXT3_2022.xlsx saved
+(This version  08:00:15   7 Jun 2024 )
+(125 missing values generated)
+variable TREAT was str1 now str3
+(1 real change made)
+(124 real changes made)
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                            41
+        from master                         0  (_merge==1)
+        from using                         41  (_merge==2)
+
+    Matched                               125  (_merge==3)
+    -----------------------------------------
+(41 observations deleted)
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//CRI//Country_GE_EXT3_2022.xlsx saved
+(This version  08:00:15   7 Jun 2024 )
+(125 missing values generated)
+variable TREAT was str1 now str3
+(1 real change made)
+(124 real changes made)
+
+    Variable |        Obs        Mean    Std. dev.       Min        Max
+-------------+---------------------------------------------------------
+ replication |        125           3           0          3          3
+(j = CRI ROW)
+
+Data                               Long   ->   Wide
+-----------------------------------------------------------------------------
+Number of observations                2   ->   2           
+Number of variables                  13   ->   17          
+j variable (2 values)             TREAT   ->   (dropped)
+xij variables:
+                       change_rGDP_FULL   ->   change_rGDP_FULLCRI change_rGDP_FULLROW
+                         change_Xi_FULL   ->   change_Xi_FULLCRI change_Xi_FULLROW
+                         change_Ti_FULL   ->   change_Ti_FULLCRI change_Ti_FULLROW
+                      change_price_FULL   ->   change_price_FULLCRI change_price_FULLROW
+                        change_IMR_FULL   ->   change_IMR_FULLCRI change_IMR_FULLROW
+-----------------------------------------------------------------------------
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//CRI//GE_EXT3_2022.xlsx saved
+(This version  08:00:15   7 Jun 2024 )
+(125 missing values generated)
+variable TREAT was str1 now str3
+(1 real change made)
+(124 real changes made)
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                            41
+        from master                         0  (_merge==1)
+        from using                         41  (_merge==2)
+
+    Matched                               125  (_merge==3)
+    -----------------------------------------
+(41 observations deleted)
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//CRI//Country_GE_EXT3_2022.xlsx saved
+(This version  08:00:15   7 Jun 2024 )
+(125 missing values generated)
+variable TREAT was str1 now str3
+(1 real change made)
+(124 real changes made)
+
+    Variable |        Obs        Mean    Std. dev.       Min        Max
+-------------+---------------------------------------------------------
+ replication |        125           3           0          3          3
+(j = CRI ROW)
+
+Data                               Long   ->   Wide
+-----------------------------------------------------------------------------
+Number of observations                2   ->   2           
+Number of variables                  13   ->   17          
+j variable (2 values)             TREAT   ->   (dropped)
+xij variables:
+                       change_rGDP_FULL   ->   change_rGDP_FULLCRI change_rGDP_FULLROW
+                         change_Xi_FULL   ->   change_Xi_FULLCRI change_Xi_FULLROW
+                         change_Ti_FULL   ->   change_Ti_FULLCRI change_Ti_FULLROW
+                      change_price_FULL   ->   change_price_FULLCRI change_price_FULLROW
+                        change_IMR_FULL   ->   change_IMR_FULLCRI change_IMR_FULLROW
+-----------------------------------------------------------------------------
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//CRI//GE_EXT3_2022.xlsx saved
+(This version  08:00:15   7 Jun 2024 )
+(125 missing values generated)
+variable TREAT was str1 now str3
+(1 real change made)
+(124 real changes made)
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                            41
+        from master                         0  (_merge==1)
+        from using                         41  (_merge==2)
+
+    Matched                               125  (_merge==3)
+    -----------------------------------------
+(41 observations deleted)
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//CRI//Country_GE_EXT3_2022.xlsx saved
+(This version  08:00:15   7 Jun 2024 )
+(125 missing values generated)
+variable TREAT was str1 now str3
+(1 real change made)
+(124 real changes made)
+
+    Variable |        Obs        Mean    Std. dev.       Min        Max
+-------------+---------------------------------------------------------
+ replication |        125           3           0          3          3
+(j = CRI ROW)
+
+Data                               Long   ->   Wide
+-----------------------------------------------------------------------------
+Number of observations                2   ->   2           
+Number of variables                  13   ->   17          
+j variable (2 values)             TREAT   ->   (dropped)
+xij variables:
+                       change_rGDP_FULL   ->   change_rGDP_FULLCRI change_rGDP_FULLROW
+                         change_Xi_FULL   ->   change_Xi_FULLCRI change_Xi_FULLROW
+                         change_Ti_FULL   ->   change_Ti_FULLCRI change_Ti_FULLROW
+                      change_price_FULL   ->   change_price_FULLCRI change_price_FULLROW
+                        change_IMR_FULL   ->   change_IMR_FULLCRI change_IMR_FULLROW
+-----------------------------------------------------------------------------
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//CRI//GE_EXT3_2022.xlsx saved
+(This version  08:00:15   7 Jun 2024 )
+(125 missing values generated)
+variable TREAT was str1 now str3
+(1 real change made)
+(124 real changes made)
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                            41
+        from master                         0  (_merge==1)
+        from using                         41  (_merge==2)
+
+    Matched                               125  (_merge==3)
+    -----------------------------------------
+(41 observations deleted)
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//CRI//Country_GE_EXT3_2022.xlsx saved
+(This version  08:00:15   7 Jun 2024 )
+(125 missing values generated)
+variable TREAT was str1 now str3
+(1 real change made)
+(124 real changes made)
+
+    Variable |        Obs        Mean    Std. dev.       Min        Max
+-------------+---------------------------------------------------------
+ replication |        125           3           0          3          3
+(j = CRI ROW)
+
+Data                               Long   ->   Wide
+-----------------------------------------------------------------------------
+Number of observations                2   ->   2           
+Number of variables                  13   ->   17          
+j variable (2 values)             TREAT   ->   (dropped)
+xij variables:
+                       change_rGDP_FULL   ->   change_rGDP_FULLCRI change_rGDP_FULLROW
+                         change_Xi_FULL   ->   change_Xi_FULLCRI change_Xi_FULLROW
+                         change_Ti_FULL   ->   change_Ti_FULLCRI change_Ti_FULLROW
+                      change_price_FULL   ->   change_price_FULLCRI change_price_FULLROW
+                        change_IMR_FULL   ->   change_IMR_FULLCRI change_IMR_FULLROW
+-----------------------------------------------------------------------------
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//CRI//GE_EXT3_2022.xlsx saved
+(This version  08:00:15   7 Jun 2024 )
+(125 missing values generated)
+variable TREAT was str1 now str3
+(1 real change made)
+(124 real changes made)
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                            41
+        from master                         0  (_merge==1)
+        from using                         41  (_merge==2)
+
+    Matched                               125  (_merge==3)
+    -----------------------------------------
+(41 observations deleted)
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//CRI//Country_GE_EXT3_2022.xlsx saved
+
+. 
+. 
+. ********************************************************************************
+. ********************************************************************************
+. * This section is not included in the Toolkit 2.0 (version June  2024)
+. 
+. 
+. if "$demand_scenarios" == "YES" {
+. 
+. cd "$RES//`iso'//temp/"
+. 
+. 
+. local exd : dir "`c(pwd)'"  files "*EXD1*.dta" 
+. dis `exd'
+. 
+. 
+. local s = 1 
+.  
+. foreach file in  `exd' {
+  2. 
+. ********************************************************************************
+. * Format Table
+. local sigma $sigma 
+  3. local X     $year_reg
+  4. 
+. use  `file' , clear
+  5.  
+. 
+.    gen  TREAT                    = ""
+  6. replace TREAT                    = "`iso'" if (iso_o    == "`iso'")
+  7. replace TREAT                    = "ROW"   if (iso_o    != "`iso'")
+  8. 
+. 
+. 
+. summ replication
+  9. global rep = `r(mean)'
+ 10. 
+. local cty                               =count[1]   
+ 11. local type              =type[1]   
+ 12. local counterfactual    = "`cty'_`type'"
+ 13. 
+. ********************************************************************************
+. ********************************************************************************
+. 
+.   
+.  
+. 
+. collapse (sum) rGDP_FULL  rGDP_BLN  Xi_FULL  Xi_BLN Ti_FULL  Ti_BLN (mean) change_price_FULL change_IMR_FULL, by(TREAT)
+ 14. 
+.   
+. gen change_rGDP_FULL            = ( rGDP_FULL  - rGDP_BLN    )/ rGDP_BLN    *100
+ 15. 
+. gen change_Xi_FULL              = (Xi_FULL     - Xi_BLN      )/ Xi_BLN      *100
+ 16. 
+. gen change_Ti_FULL              = (Ti_FULL     - Ti_BLN      )/ Ti_BLN      *100
+ 17. 
+. 
+. gen id = _n
+ 18. 
+. reshape wide change_rGDP change_Xi change_Ti change_price_FULL change_IMR_FULL, i(id) j(TREAT) string
+ 19. 
+. keep change_*
+ 20.  
+.  
+. order  change_Xi_FULL`iso' change_rGDP_FULL`iso' change_price_FULL`iso' change_IMR_FULL`iso' change_Xi_FULLROW change_rGDP_FULLROW change_Ti_FULL`iso'  change_pr
+> ice_FULLROW change_IMR_FULLROW
+ 21.  
+. ********************************************************************************
+. ********************************************************************************
+. 
+.  
+. if `s' == 1 {
+ 22. export excel  "$RES//`iso'//GE_EXD1_`X'.xlsx", sheet("`counterfactual'")  firstrow(variables) nolabel  replace
+ 23. }
+ 24. 
+. 
+. if `s' > 1 {
+ 25. export excel  "$RES//`iso'//GE_EXD1_`X'.xlsx", sheet("`counterfactual'")  firstrow(variables) nolabel sheetreplace
+ 26. 
+. }
+ 27. 
+. ********************************************************************************
+. ********************************************************************************
+. ********************************************************************************
+. ********************************************************************************
+. 
+. 
+. 
+. use  `file' , clear
+ 28. 
+.    gen  TREAT   = ""
+ 29. replace TREAT   = "`iso'" if (iso_o    == "`iso'")
+ 30. replace TREAT   = "ROW"   if (iso_o    != "`iso'")
+ 31. 
+.  
+. keep country change_* TREAT 
+ 32. 
+. merge m:1 country using "$CTY/temp_cty_name" , keepusing(country_name)
+ 33. keep if _m==3
+ 34. drop _m
+ 35. 
+. 
+. 
+. sort  country_name
+ 36. 
+. keep    country_name country  change_Xi_FULL change_rGDP_FULL change_price_FULL change_IMR_FULL  TREAT change_Ti_FULL
+ 37. order   country_name country  change_Xi_FULL change_rGDP_FULL change_price_FULL change_IMR_FULL  TREAT change_Ti_FULL
+ 38.  
+. if `s' == 1 {
+ 39. export excel  "$RES//`iso'//Country_GE_EXD1_`X'.xlsx", sheet("`counterfactual'_CTY")  firstrow(variables) nolabel  replace
+ 40. }
+ 41. 
+. 
+. if `s' > 1 {
+ 42. export excel  "$RES//`iso'//Country_GE_EXD1_`X'.xlsx", sheet("`counterfactual'_CTY")  firstrow(variables) nolabel sheetreplace
+ 43. }
+ 44. 
+. 
+.  local s = `s' + 1
+ 45. 
+. }
+. 
+. ********************************************************************************
+. ********************************************************************************
+. ********************************************************************************
+. * Read Results files
+. 
+. cd "$RES//`iso'//temp/"
+. 
+. 
+. local exd : dir "`c(pwd)'"  files "*EXD2*.dta" 
+. 
+. 
+. 
+. local s = 1 
+.  
+. foreach file in    `exd' {
+  2. 
+. ********************************************************************************
+. * Format Table
+. local sigma $sigma 
+  3. local X     $year_reg
+  4. 
+. use  `file' , clear
+  5.  
+. 
+.    gen  TREAT                    = ""
+  6. replace TREAT                    = "`iso'" if (iso_o    == "`iso'")
+  7. replace TREAT                    = "ROW"   if (iso_o    != "`iso'")
+  8. 
+. 
+. 
+. summ replication
+  9. global rep = `r(mean)'
+ 10. 
+. local cty                               =count[1]   
+ 11. local type              =type[1]   
+ 12. local counterfactual    = "`cty'_`type'"
+ 13. 
+. ********************************************************************************
+. ********************************************************************************
+. 
+.   
+.  
+. 
+. collapse (sum) rGDP_FULL  rGDP_BLN  Xi_FULL  Xi_BLN Ti_FULL  Ti_BLN (mean) change_price_FULL change_IMR_FULL, by(TREAT)
+ 14. 
+.   
+. gen change_rGDP_FULL            = ( rGDP_FULL  - rGDP_BLN    )/ rGDP_BLN    *100
+ 15. 
+. gen change_Xi_FULL              = (Xi_FULL     - Xi_BLN      )/ Xi_BLN      *100
+ 16. 
+. gen change_Ti_FULL              = (Ti_FULL     - Ti_BLN      )/ Ti_BLN      *100
+ 17. 
+. 
+. gen id = _n
+ 18. 
+. reshape wide change_rGDP change_Xi change_Ti change_price_FULL change_IMR_FULL, i(id) j(TREAT) string
+ 19. 
+. keep change_*
+ 20.  
+.  
+. order  change_Xi_FULL`iso' change_rGDP_FULL`iso' change_price_FULL`iso' change_IMR_FULL`iso' change_Xi_FULLROW change_rGDP_FULLROW change_Ti_FULL`iso'  change_pr
+> ice_FULLROW change_IMR_FULLROW
+ 21.  
+. ********************************************************************************
+. ********************************************************************************
+. 
+.  
+. if `s' == 1 {
+ 22. export excel  "$RES//`iso'//GE_EXD2_`X'.xlsx", sheet("`counterfactual'")  firstrow(variables) nolabel  replace
+ 23. }
+ 24. 
+. 
+. if `s' > 1 {
+ 25. export excel  "$RES//`iso'//GE_EXD2_`X'.xlsx", sheet("`counterfactual'")  firstrow(variables) nolabel sheetreplace
+ 26. 
+. }
+ 27. 
+. ********************************************************************************
+. ********************************************************************************
+. ********************************************************************************
+. ********************************************************************************
+. 
+. 
+. 
+. use  `file' , clear
+ 28. 
+.    gen  TREAT   = ""
+ 29. replace TREAT   = "`iso'" if (iso_o    == "`iso'")
+ 30. replace TREAT   = "ROW"   if (iso_o    != "`iso'")
+ 31. 
+.  
+. keep country change_* TREAT 
+ 32. 
+. merge m:1 country using "$CTY/temp_cty_name" , keepusing(country_name)
+ 33. keep if _m==3
+ 34. drop _m
+ 35. 
+. 
+. 
+. sort  country_name
+ 36. 
+. keep    country_name country  change_Xi_FULL change_rGDP_FULL change_price_FULL change_IMR_FULL  TREAT change_Ti_FULL
+ 37. order   country_name country  change_Xi_FULL change_rGDP_FULL change_price_FULL change_IMR_FULL  TREAT change_Ti_FULL
+ 38.  
+. if `s' == 1 {
+ 39. export excel  "$RES//`iso'//Country_GE_EXD2_`X'.xlsx", sheet("`counterfactual'_CTY")  firstrow(variables) nolabel  replace
+ 40. }
+ 41. 
+. 
+. if `s' > 1 {
+ 42. export excel  "$RES//`iso'//Country_GE_EXD2_`X'.xlsx", sheet("`counterfactual'_CTY")  firstrow(variables) nolabel sheetreplace
+ 43. }
+ 44. 
+. 
+.  local s = `s' + 1
+ 45. 
+. }
+. 
+. ********************************************************************************
+. ********************************************************************************
+. 
+. ********************************************************************************
+. * Read Results files
+. 
+. cd "$RES//`iso'//temp/"
+. 
+. 
+. local exd : dir "`c(pwd)'"  files "*EXD3*.dta" 
+. 
+. 
+. 
+. local s = 1 
+.  
+. foreach file in    `exd' {
+  2. 
+. ********************************************************************************
+. * Format Table
+. local sigma $sigma 
+  3. local X     $year_reg
+  4. 
+. use  `file' , clear
+  5.  
+. 
+.    gen  TREAT                    = ""
+  6. replace TREAT                    = "`iso'" if (iso_o    == "`iso'")
+  7. replace TREAT                    = "ROW"   if (iso_o    != "`iso'")
+  8. 
+. 
+. 
+. summ replication
+  9. global rep = `r(mean)'
+ 10. 
+. local cty                               =count[1]   
+ 11. local type              =type[1]   
+ 12. local counterfactual    = "`cty'_`type'"
+ 13. 
+. ********************************************************************************
+. ********************************************************************************
+. 
+.   
+.  
+. 
+. collapse (sum) rGDP_FULL  rGDP_BLN  Xi_FULL  Xi_BLN Ti_FULL  Ti_BLN (mean) change_price_FULL change_IMR_FULL, by(TREAT)
+ 14. 
+.   
+. gen change_rGDP_FULL            = ( rGDP_FULL  - rGDP_BLN    )/ rGDP_BLN    *100
+ 15. 
+. gen change_Xi_FULL              = (Xi_FULL     - Xi_BLN      )/ Xi_BLN      *100
+ 16. 
+. gen change_Ti_FULL              = (Ti_FULL     - Ti_BLN      )/ Ti_BLN      *100
+ 17. 
+. 
+. gen id = _n
+ 18. 
+. reshape wide change_rGDP change_Xi change_Ti change_price_FULL change_IMR_FULL, i(id) j(TREAT) string
+ 19. 
+. keep change_*
+ 20.  
+.  
+. order  change_Xi_FULL`iso' change_rGDP_FULL`iso' change_price_FULL`iso' change_IMR_FULL`iso' change_Xi_FULLROW change_rGDP_FULLROW change_Ti_FULL`iso'  change_pr
+> ice_FULLROW change_IMR_FULLROW
+ 21.  
+. ********************************************************************************
+. ********************************************************************************
+. 
+.  
+. if `s' == 1 {
+ 22. export excel  "$RES//`iso'//GE_EXD3_`X'.xlsx", sheet("`counterfactual'")  firstrow(variables) nolabel  replace
+ 23. }
+ 24. 
+. 
+. if `s' > 1 {
+ 25. export excel  "$RES//`iso'//GE_EXD3_`X'.xlsx", sheet("`counterfactual'")  firstrow(variables) nolabel sheetreplace
+ 26. 
+. }
+ 27. 
+. ********************************************************************************
+. ********************************************************************************
+. ********************************************************************************
+. ********************************************************************************
+. 
+. 
+. 
+. use  `file' , clear
+ 28. 
+.    gen  TREAT   = ""
+ 29. replace TREAT   = "`iso'" if (iso_o    == "`iso'")
+ 30. replace TREAT   = "ROW"   if (iso_o    != "`iso'")
+ 31. 
+.  
+. keep country change_* TREAT 
+ 32. 
+. merge m:1 country using "$CTY/temp_cty_name" , keepusing(country_name)
+ 33. keep if _m==3
+ 34. drop _m
+ 35. 
+. 
+. 
+. sort  country_name
+ 36. 
+. keep    country_name country  change_Xi_FULL change_rGDP_FULL change_price_FULL change_IMR_FULL  TREAT change_Ti_FULL
+ 37. order   country_name country  change_Xi_FULL change_rGDP_FULL change_price_FULL change_IMR_FULL  TREAT change_Ti_FULL
+ 38.  
+. if `s' == 1 {
+ 39. export excel  "$RES//`iso'//Country_GE_EXD3_`X'.xlsx", sheet("`counterfactual'_CTY")  firstrow(variables) nolabel  replace
+ 40. }
+ 41. 
+. 
+. if `s' > 1 {
+ 42. export excel  "$RES//`iso'//Country_GE_EXD3_`X'.xlsx", sheet("`counterfactual'_CTY")  firstrow(variables) nolabel sheetreplace
+ 43. }
+ 44. 
+. 
+.  local s = `s' + 1
+ 45. 
+. }
+. 
+. }
+
+. 
+. ********************************************************************************
+. *******************************************************************************/
+. 
+end of do-file
+d:\santoni\Dropbox\WW_other_projs\WB_2024\WB_GE\WB_DTA_Toolkit\2.res\toolkit\CRI
+(This version  11:56:51   6 Jun 2024 )
+(144 missing values generated)
+(52 real changes made)
+(27 real changes made)
+variable reg_s was str3 now str4
+(20 real changes made)
+(2 real changes made)
+(8 real changes made)
+(35 real changes made)
+(165 observations deleted)
+ECA
+Europe & Central Asia
+(This version  09:10:17   6 Jun 2024 )
+(82,583 observations deleted)
+(504,088 missing values generated)
+(496,778 observations deleted)
+(10,772 observations deleted)
+(file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//CYP//temp//temp_ref_cty.dta not found)
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//CYP//temp//temp_ref_cty.dta saved
+(10,772 observations deleted)
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                             0
+    Matched                                52  (_merge==3)
+    -----------------------------------------
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                           114
+        from master                         0  (_merge==1)
+        from using                        114  (_merge==2)
+
+    Matched                                52  (_merge==3)
+    -----------------------------------------
+(114 observations deleted)
+(8 observations deleted)
+
+                            totX
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%       158335         158335
+ 5%     874551.1       812205.3
+10%      2661000       874551.1       Obs                  44
+25%      7110899        2532995       Sum of wgt.          44
+
+50%     2.09e+07                      Mean           6.86e+08
+                        Largest       Std. dev.      2.63e+09
+75%     1.89e+08       1.49e+09
+90%     1.11e+09       1.83e+09       Variance       6.93e+18
+95%     1.83e+09       6.46e+09       Skewness       5.251152
+99%     1.64e+10       1.64e+10       Kurtosis       30.84343
+(11 observations deleted)
+ZMB
+(This version  09:10:17   6 Jun 2024 )
+(585,514 observations deleted)
+(4,634 observations deleted)
+(36 observations deleted)
+2022
+Number of observations (_N) was 0, now 1.
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//info_simulations_toolkit.dta saved
+30
+30
+
+. 
+. 
+. 
+. 
+. cap     log close

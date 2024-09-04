@@ -1,0 +1,168 @@
+
+. 
+. 
+. if "$preliminary"   == "on" {
+. 
+. 
+. 
+. ********************************************************************************
+. ********************************************************************************
+. * Esti-bration: Agro+Man
+. ********************************************************************************
+. ********************************************************************************
+.  
+. use $ge_dataset , clear
+(This version  09:10:17   6 Jun 2024 )
+.  
+. 
+. cap drop  RTA_k*
+. cap drop  rta_k*
+. qui tab $kmean_alg , gen(RTA_k )
+. 
+. replace RTA_k1      = 0                    if RTA_k1 == .
+(470,800 real changes made)
+. replace RTA_k2      = 0                    if RTA_k2 == .
+(470,800 real changes made)
+. replace RTA_k3      = 0                    if RTA_k3 == .
+(470,800 real changes made)
+. 
+. gen rta_k1          =  $rta *RTA_k1
+. gen rta_k2          =  $rta *RTA_k2
+. gen rta_k3          =  $rta *RTA_k3
+. 
+. 
+. *ppml_panel_sg $trade                   $rta                                    INTL_BRDR_*  $controls_od               , ex(iso_o)      im(iso_d)              y
+> ear(year)  $sym    cluster(ij)    
+. *outreg2 using  "$RES//`iso'//Structural_Gravity.xls",   dec(3) keep( $rta              $controls_od                    INTL_BRDR_* ) addtext(Period, Full, Depen
+> dent, $trade_frictions  ) lab     
+. 
+. ppml_panel_sg $trade            rta_k*                                  INTL_BRDR_*     $controls_od    , ex(iso_o)      im(iso_d)              year(year)   $sym
+>     genD(gamma_ij_alt)  predict(y_hat)  cluster(ij)    
+Initializing...
+Checking for possible non-existence issues...
+Iterating...
+
+---------------------------
+    Variable |   Active    
+-------------+-------------
+      rta_k1 |  .47171633  
+      rta_k2 |  .23452853  
+      rta_k3 |  .04984091  
+INTL_BR~1990 |  .27366332  
+INTL_BR~2000 |  .52035446  
+INTL_BR~2010 |  .48278779  
+     rta_out |  .16328439  
+     rta_psa |  .00322472  
+      wto_od |  .26918306  
+---------------------------
+iterations: 189
+tolerance: 1.000e-12
+Computing standard errors
+
+ ******* PPML Panel Structural Gravity Estimation ********** 
+
+                                                       Number of obs = 590,185
+Log likelihood = -1.073e+10                            R-squared     =  0.9997
+----------------------------------------------------------------------------------
+agro_ieY_man_ieY | Coefficient  Std. err.      z    P>|z|     [95% conf. interval]
+-----------------+----------------------------------------------------------------
+          rta_k1 |   .4717163   .0401749    11.74   0.000     .3929749    .5504577
+          rta_k2 |   .2345285   .0557704     4.21   0.000     .1252205    .3438365
+          rta_k3 |   .0498409   .0347945     1.43   0.152    -.0183551    .1180369
+  INTL_BRDR_1990 |   .2736633    .023307    11.74   0.000     .2279824    .3193442
+  INTL_BRDR_2000 |   .5203545   .0339332    15.33   0.000     .4538466    .5868623
+  INTL_BRDR_2010 |   .4827878   .0355605    13.58   0.000     .4130905    .5524851
+         rta_out |   .1632844   .0719143     2.27   0.023      .022335    .3042338
+         rta_psa |   .0032247   .0830635     0.04   0.969    -.1595767    .1660261
+          wto_od |   .2691831   .0377868     7.12   0.000     .1951223    .3432439
+----------------------------------------------------------------------------------
+Fixed Effects included: iso_o-year, iso_d-year, iso_o-iso_d
+Clustered standard errors, clustered by ij (user-specified)
+
+. outreg2 using  "$RES//`iso'//Structural_Gravity.xls",   dec(3) keep( rta_k*     $controls_od                            INTL_BRDR_* ) addtext(Period, Full, Depen
+> dent, $trade_frictions  ) lab    replace
+d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//CRI//Structural_Gravity.xls
+dir : seeout
+. 
+. ********************************************************************************
+. 
+. gen    est_RTA1         = _b[rta_k1]
+. gen    est_RTA2         = _b[rta_k2]
+. gen    est_RTA3         = _b[rta_k3]
+. gen    est_RTA_out      = _b[rta_out]
+. gen    est_wto          = _b[$wto   ]
+. 
+. 
+. 
+. cap gen     est_INTL_BRDR_1990          = _b[INTL_BRDR_1990]
+. cap gen     est_INTL_BRDR_2000          = _b[INTL_BRDR_2000]
+. cap gen     est_INTL_BRDR_2010          = _b[INTL_BRDR_2010]
+. 
+. 
+. ********************************************************************************
+. ********************************************************************************
+.  
+. gen trade                               = $trade
+. 
+. 
+. replace gamma_ij_alt    = .                                             if gamma_ij_alt == 0 | gamma_ij_alt <= 0.00001
+(164,644 real changes made, 164,644 to missing)
+. 
+. gen epsilon                     = ($trade / y_hat)
+.  
+. generate check_exp              =exp(ln(gamma_ij_alt) +  ln(epsilon))
+(196,869 missing values generated)
+. 
+. generate tij_bar                =(gamma_ij_alt)*(epsilon)
+(164,644 missing values generated)
+. 
+. corr tij_bar check_exp
+(obs=393,316)
+
+             |  tij_bar check_~p
+-------------+------------------
+     tij_bar |   1.0000
+   check_exp |   1.0000   1.0000
+
+. cap drop check_exp
+. 
+.    
+. 
+. replace  tij_bar        = gamma_ij_alt    if  trade ==0
+(32,225 real changes made)
+. 
+. 
+. ********************************************************************************
+. if "$estibration"       =="No" {
+.     
+.         cap drop    tij_bar  
+.         
+.         gen tij_bar         = gamma_ij_alt        
+.         
+. }
+. ********************************************************************************
+. 
+. cap drop t
+. rename year   t
+. gen   exporter = iso_o
+. gen   importer = iso_d
+. 
+. 
+. cap drop pair_id
+. 
+. rename ij pair_id
+. 
+. 
+. label data "This version  $S_TIME  $S_DATE "
+. 
+. 
+. cd "$RES\\`iso'\"
+d:\santoni\Dropbox\WW_other_projs\WB_2024\WB_GE\WB_DTA_Toolkit\2.res\toolkit\CRI
+. 
+. drop if t > $year_GE_end
+(0 observations deleted)
+. 
+. save $dataset_am, replace
+(file ge_gravity_estibrated_am.dta not found)
+file ge_gravity_estibrated_am.dta saved
+. cap log close

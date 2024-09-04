@@ -1,0 +1,406 @@
+
+. 
+. local iso "$iso"
+
+. 
+. ********************************************************************************
+. ********************************************************************************
+. * Basic Stats on RTA & Cluster analysis
+. ********************************************************************************
+. ********************************************************************************
+. * Coverage Agreements 
+. 
+. use     "$DATA/trade_rta_ver2024"  , clear   // full sample 166 countries
+(This version  11:56:51   6 Jun 2024 )
+
+. 
+. keep if iso_o           == "`iso'"
+(897,338 observations deleted)
+
+. keep if year            == $ldate_bg_rta   // keep the last year in the sample
+(5,608 observations deleted)
+
+. 
+. keep if agreement       != ""
+(115 observations deleted)
+
+.  
+. 
+. keep iso_d agreement id_agree $kmean_alg  entry_force
+
+. 
+. 
+. save    "$RES//`iso'//temp/RTA_cty", replace
+(file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//CRI//temp/RTA_cty.dta not found)
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//CRI//temp/RTA_cty.dta saved
+
+. export excel using "$RES//`iso'//statistics.xlsx", sheet("RTAs_at_place")  sheetreplace firstrow(variables) nolabel
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//CRI//statistics.xlsx saved
+
+. 
+. keep    id_agree agreement      
+
+. bys     id_agree: keep if _n == 1
+(31 observations deleted)
+
+. save    "$RES//`iso'//temp/id_agree_list", replace
+(file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//CRI//temp/id_agree_list.dta not found)
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//CRI//temp/id_agree_list.dta saved
+
+. 
+. ********************************************************************************
+. ********************************************************************************
+. * Trade in and out RTAs
+. 
+. use "$RES//`iso'//temp/trade_baci_cty", clear
+
+. 
+. keep if iso_o =="`iso'"
+(187,583,078 observations deleted)
+
+. 
+. rename t year
+
+. 
+. collapse (sum) v, by(iso_o iso_d year)
+
+. 
+. 
+. merge m:1 iso_o iso_d year using "$RES//`iso'//temp/gravity_temp"
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                       900,203
+        from master                         0  (_merge==1)
+        from using                    900,203  (_merge==2)
+
+    Matched                             2,904  (_merge==3)
+    -----------------------------------------
+
+. keep if _m ==3
+(900,203 observations deleted)
+
+. drop _m
+
+. 
+. merge m:1 iso_d  using  "$RES//`iso'//temp/RTA_cty" 
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                         1,941
+        from master                     1,941  (_merge==1)
+        from using                          0  (_merge==2)
+
+    Matched                               963  (_merge==3)
+    -----------------------------------------
+
+. 
+. keep    if year >= $ldate_bg1
+(1,735 observations deleted)
+
+. 
+. bys iso_o year: egen X     = total(v)
+
+.                                 gen mkt_sh_x = v/X*100
+
+. 
+. 
+. collapse (sum) mkt_sh_x, by(agreement year)
+
+. 
+. save    "$RES//`iso'//temp/mkt_sh_X", replace
+(file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//CRI//temp/mkt_sh_X.dta not found)
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//CRI//temp/mkt_sh_X.dta saved
+
+. 
+. ********************************************************************************
+. ********************************************************************************
+. * Import share from partners
+. 
+. use "$RES//`iso'//temp/trade_baci_cty", clear
+
+. keep if iso_d =="`iso'"
+(186,909,605 observations deleted)
+
+. 
+. rename t year
+
+. 
+. collapse (sum) v, by(iso_o iso_d year)
+
+. 
+. 
+. merge m:1 iso_o iso_d year using "$RES//`iso'//temp/gravity_temp"
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                       900,137
+        from master                         0  (_merge==1)
+        from using                    900,137  (_merge==2)
+
+    Matched                             2,970  (_merge==3)
+    -----------------------------------------
+
+. keep if _m ==3
+(900,137 observations deleted)
+
+. drop _m
+
+. 
+. rename          iso_d  iso_temp
+
+. rename          iso_o  iso_d
+
+. 
+. merge   m:1  iso_d  using       "$RES//`iso'//temp/RTA_cty"
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                         2,007
+        from master                     2,007  (_merge==1)
+        from using                          0  (_merge==2)
+
+    Matched                               963  (_merge==3)
+    -----------------------------------------
+
+. 
+. keep    if year >= $ldate_bg1
+(1,767 observations deleted)
+
+. 
+. rename          iso_d           iso_o
+
+. rename          iso_temp        iso_d
+
+. 
+. 
+. bys iso_d year: egen M     = total(v)
+
+.                                 gen mkt_sh_m = v/M*100
+
+. 
+. collapse (sum) mkt_sh, by(agreement year)
+
+. 
+.         
+. merge   1:1     year agreement using "$RES//`iso'//temp/mkt_sh_X"
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                             0
+    Matched                               128  (_merge==3)
+    -----------------------------------------
+
+. drop    _m
+
+. 
+. replace agreement = "RoW" if agreement == ""
+(8 real changes made)
+
+. export excel using "$RES//`iso'//statistics.xlsx", sheet("mkt_sh_by_RTA")  sheetreplace firstrow(variables) nolabel 
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//CRI//statistics.xlsx saved
+
+. 
+. 
+. ********************************************************************************
+. ********************************************************************************
+. * this file is computed using the DTA raw data all agreements
+. 
+. use "$DATA/rta_data_for_cluster", clear
+
+. 
+. merge m:1 id_agree using "$DATA/agree_list_GE.dta", keepusing(entry_force agreement)
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                        63,190
+        from master                    63,189  (_merge==1)
+        from using                          1  (_merge==2)
+
+    Matched                           345,933  (_merge==3)
+    -----------------------------------------
+
+. keep if _m == 3
+(63,190 observations deleted)
+
+. drop _m
+
+. 
+. sum rta_deep, d
+
+                          rta_deep
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%            0              0
+ 5%            0              0
+10%            0              0       Obs             345,933
+25%            0              0       Sum of wgt.     345,933
+
+50%            0                      Mean           .8849184
+                        Largest       Std. dev.      30.04535
+75%            0           2000
+90%            1           2500       Variance       902.7228
+95%            1           3000       Skewness       56.80107
+99%            1           5000       Kurtosis       4458.836
+
+. replace rta_deep = 0 if rta_deep == .
+(0 real changes made)
+
+. 
+. /* Dicotomize to ease interpretation */
+. replace rta_deep = 1 if rta_deep > 1 
+(2,537 real changes made)
+
+. 
+. bys id_provision        : egen max_w            =     max(rta_deep )
+
+. drop if max_w == 0  /* Drop provision never active */
+(45,220 observations deleted)
+
+. cap drop max_w
+
+. 
+. bys Area: egen num_provision = nvals(id_provision)
+
+. 
+. rename rta_deep                 agree_coverage
+
+. 
+. collapse (mean) num_provision agree_coverage, by(id_agree Area)
+
+. 
+. egen num_agree = nvals(id_agree)   /* 278 */
+
+. 
+. gen coverage_0          = (agree_coverage == 0)
+
+. gen coverage_25         = (agree_coverage <  0.25 & agree_coverage > 0)
+
+. gen coverage_2550       = (agree_coverage >= 0.25 & agree_coverage < 0.5)
+
+. gen coverage_5075       = (agree_coverage >= 0.5  & agree_coverage < 0.75)
+
+. 
+. gen coverage_75         = (agree_coverage >= 0.75 )
+
+. 
+. 
+. ********************************************************************************
+. ********************************************************************************
+. * Average coverage
+. 
+. preserve
+
+. 
+.         collapse (mean) num_provision agree_coverage (sum) coverage_*, by(Area)
+
+. 
+.         export excel using "$RES//`iso'//statistics.xlsx", sheet("PTAs_coverage_all")  sheetreplace firstrow(variables) nolabel 
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//CRI//statistics.xlsx saved
+
+. 
+. restore
+
+. 
+. ********************************************************************************
+. ********************************************************************************
+. * average for Deep Agreements
+. 
+. preserve
+
+.     
+.         merge m:1 id_agree using "$DATA/agree_list_GE.dta", keepusing( $kmean_alg )
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                             1
+        from master                         0  (_merge==1)
+        from using                          1  (_merge==2)
+
+    Matched                             5,814  (_merge==3)
+    -----------------------------------------
+
+.         keep if _m ==3
+(1 observation deleted)
+
+.         keep if $kmean_alg    ==  1 
+(5,436 observations deleted)
+
+. 
+.         collapse (mean)   agree_coverage (sum) coverage_*, by(Area)
+
+. 
+.         export excel using "$RES//`iso'//statistics.xlsx", sheet("PTAs_coverage_deep")  sheetreplace firstrow(variables) nolabel 
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//CRI//statistics.xlsx saved
+
+. restore
+
+. 
+. ********************************************************************************
+. ********************************************************************************
+. 
+. preserve
+
+.         
+.         merge   m:1     id_agree        using "$RES//`iso'//temp/id_agree_list"
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                         5,544
+        from master                     5,544  (_merge==1)
+        from using                          0  (_merge==2)
+
+    Matched                               270  (_merge==3)
+    -----------------------------------------
+
+.         keep    if _m == 3
+(5,544 observations deleted)
+
+.         
+.         tab id_agree
+
+   id_agree |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          3 |         18        6.67        6.67
+         73 |         18        6.67       13.33
+         77 |         18        6.67       20.00
+        111 |         18        6.67       26.67
+        164 |         18        6.67       33.33
+        205 |         18        6.67       40.00
+        210 |         18        6.67       46.67
+        230 |         18        6.67       53.33
+        239 |         18        6.67       60.00
+        243 |         18        6.67       66.67
+        246 |         18        6.67       73.33
+        254 |         18        6.67       80.00
+        277 |         18        6.67       86.67
+        300 |         18        6.67       93.33
+        356 |         18        6.67      100.00
+------------+-----------------------------------
+      Total |        270      100.00
+
+. 
+.         collapse (mean) agree_coverage, by(Area id_agree)
+
+. 
+. 
+.         reshape wide agree_coverage, i(Area) j(id_agree) 
+(j = 3 73 77 111 164 205 210 230 239 243 246 254 277 300 356)
+
+Data                               Long   ->   Wide
+-----------------------------------------------------------------------------
+Number of observations              270   ->   18          
+Number of variables                   3   ->   16          
+j variable (15 values)         id_agree   ->   (dropped)
+xij variables:
+                         agree_coverage   ->   agree_coverage3 agree_coverage73 ... agree_coverage356
+-----------------------------------------------------------------------------
+
+.         export excel using "$RES//`iso'//statistics.xlsx", sheet("PTAs_coverage_cty")  sheetreplace firstrow(variables) nolabel 
+file d:/santoni/Dropbox//WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/toolkit//CRI//statistics.xlsx saved
+
+. 
+. restore
+
+. 
+. cap     log close

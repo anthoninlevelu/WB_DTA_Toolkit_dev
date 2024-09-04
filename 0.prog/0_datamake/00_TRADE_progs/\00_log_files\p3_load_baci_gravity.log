@@ -1,0 +1,1107 @@
+
+. 
+. ********************************************************************************
+. ********************************************************************************
+. * WDI indicators GDP:  GDP (current US$)(NY.GDP.MKTP.CD)
+. wbopendata,  indicator(ny.gdp.mktp.cd) long clear  
+
+    Metadata for indicator NY.GDP.MKTP.CD
+----------------------------------------------------------------------------------------------------------------------------------------------------------------
+    Name: GDP (current US$)
+----------------------------------------------------------------------------------------------------------------------------------------------------------------
+    Collection: 2 World Development Indicators
+----------------------------------------------------------------------------------------------------------------------------------------------------------------
+    Description: GDP at purchaser's prices is the sum of gross value added by all resident producers in the economy plus any product taxes and minus any
+    subsidies not included in the value of the products. It is calculated without making deductions for depreciation of fabricated assets or for depletion
+    and degradation of natural resources. Data are in current U.S. dollars. Dollar figures for GDP are converted from domestic currencies using single year
+    official exchange rates. For a few countries where the official exchange rate does not reflect the rate effectively applied to actual foreign exchange
+    transactions, an alternative conversion factor is used.
+----------------------------------------------------------------------------------------------------------------------------------------------------------------
+    Note: World Bank national accounts data, and OECD National Accounts data files.
+----------------------------------------------------------------------------------------------------------------------------------------------------------------
+    Topic(s): 3 Economy and Growth
+----------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+
+. 
+. 
+. drop if countrycode ==""
+(0 observations deleted)
+
+. rename ny_gdp_mktp_cd gdp_wb
+
+. keep countrycode countryname year gdp_wb
+
+. 
+. drop if gdp == .
+(3,846 observations deleted)
+
+. 
+. rename countrycode iso3 
+
+. 
+. keep year  iso3 gdp_wb countryname
+
+. replace iso3="SCG" if   ( iso3=="SRB"  & year  <= 2005 )   //  this is because in Comtrade 
+(11 real changes made)
+
+. replace iso3="YUG" if   ( iso3=="SCG"  & year  <= 1991 )   //  this is because in Comtrade 
+(0 real changes made)
+
+. 
+. replace iso3="SUN" if   ( iso3=="RUS"  & year  <= 1991 )
+(4 real changes made)
+
+. replace iso3="CSK" if    (iso3=="CZE" | iso3=="SVK") & year <= 1992
+(6 real changes made)
+
+. 
+. preserve
+
+. bys iso3: keep if _n == 1
+(12,913 observations deleted)
+
+. keep iso3 countryname
+
+. rename iso3 iso_o
+
+. save "$TEMP/wb_country_name", replace
+file /Users/anthoninlevelu/Desktop/World Bank/2024/PTA_project/FLRS/WB_DTA_Toolkit_dev/1.data/temp/wb_country_name.dta saved
+
+. restore
+
+. 
+. 
+. collapse (sum) gdp_wb, by(iso3 year)
+
+. 
+. 
+. keep if year >= $year_start
+(4,141 observations deleted)
+
+. keep if year <= $year_end
+(0 observations deleted)
+
+. 
+. 
+. save "$TEMP/temp_gdp", replace
+file /Users/anthoninlevelu/Desktop/World Bank/2024/PTA_project/FLRS/WB_DTA_Toolkit_dev/1.data/temp/temp_gdp.dta saved
+
+. 
+. 
+. bys iso3: keep if _n==1
+(8,769 observations deleted)
+
+. keep iso3
+
+. gen gdp_id = 1
+
+. 
+. save "$TEMP/VA_iso", replace
+file /Users/anthoninlevelu/Desktop/World Bank/2024/PTA_project/FLRS/WB_DTA_Toolkit_dev/1.data/temp/VA_iso.dta saved
+
+. 
+. ********************************************************************************
+. ********************************************************************************
+. * unzip file 
+. cd "$BACI"
+unable to change to /Users/anthoninlevelu/Desktop/World Bank/2024/WW_other_projs/DATA/BACI
+r(170);
+
+end of do-file
+
+r(170);
+
+. do "/var/folders/78/3fbqqz4j45sckg41vqsfrscm0000gn/T//SD51849.000000"
+
+. *************************************************************************************************************
+. ** Regression: LPM (average of 5 years prior to signature of the agreement (as in Bergstrand and Egger 2013))
+. 
+. clear all
+
+. set maxvar 32767
+
+
+. 
+. ** Set OUTPUT DIRECTORY **
+. 
+. global path "/Users/anthoninlevelu/Library/CloudStorage/OneDrive-UniversitéParis-Dauphine/Back-UP PRO/Documents/Dauphine/Levelu_Rocha"
+
+. global stata "$path/Stata"
+
+. global latex "$path/Stata/latex"
+
+. global data "$path/Data"
+
+. global graph "$path/Data/graph"
+
+. cd "$stata"
+/Users/anthoninlevelu/Library/CloudStorage/OneDrive-UniversitéParis-Dauphine/Back-UP PRO/Documents/Dauphine/Levelu_Rocha/Stata
+
+. 
+. 
+. ** settings for graphs 
+. 
+. ssc install blindschemes
+checking blindschemes consistency and verifying not already installed...
+all files already exist and are up to date.
+
+. ssc install grstyle
+checking grstyle consistency and verifying not already installed...
+all files already exist and are up to date.
+
+. ssc install colrspace
+checking colrspace consistency and verifying not already installed...
+all files already exist and are up to date.
+
+. ssc install palettes
+checking palettes consistency and verifying not already installed...
+all files already exist and are up to date.
+
+. 
+. set scheme plotplain, permanently
+(set scheme preference recorded)
+
+. grstyle init
+
+. grstyle set color burd
+
+. 
+. grstyle color p1 "122 122 122"
+
+. grstyle color p2 "55 135 168"
+
+. grstyle color p3 "243 109 106"
+
+. grstyle color p4 "252 163 17"
+
+. 
+. 
+. grstyle color background "255 252 252"
+
+. grstyle color plotregion "255 252 252"
+
+. grstyle color legend "255 252 252"
+
+. grstyle color legend_line "255 252 252"
+
+. grstyle color plotregion_line "255 252 252"
+
+. 
+end of do-file
+
+. do "/var/folders/78/3fbqqz4j45sckg41vqsfrscm0000gn/T//SD51849.000000"
+
+. corresponding author: gianluca.santoni@cepii.fr
+command corresponding is unrecognized
+r(199);
+
+end of do-file
+
+r(199);
+
+. do "/var/folders/78/3fbqqz4j45sckg41vqsfrscm0000gn/T//SD51849.000000"
+
+. 
+. /******************************************************************************* 
+>              The Economic Impact of Deepening Trade Agreements A Toolkit
+> 
+>                                    this version: MAY 2024
+>                                    
+> website: https://xxxxxxx.org/
+> 
+> when using the tool please cite:  
+> Fontagné, L., Rocha, N., Ruta, M., Santoni, G. (2023),
+>  "The Economic Impact of Deepening Trade Agreements", World Bank Economic Review,  
+> 
+>          https://doi.org/10.1093/wber/lhad005.  
+> 
+> corresponding author: gianluca.santoni@cepii.fr
+>  
+> *******************************************************************************/
+. ********************************************************************************
+. 
+. clear *
+
+. 
+.    
+. set scheme s1color
+
+. set excelxlsxlargefile on
+
+. version
+version 17.0
+
+. 
+. set seed 01032018
+
+. 
+. global seed "01032018"
+
+. 
+end of do-file
+
+. ! git init
+
+Initialized empty Git repository in /Users/anthoninlevelu/Desktop/World Bank/2024/PTA_project/FLRS/WB_DTA_Toolkit_dev/0.prog/0_datamake/000_DTA_progs/.git/
+
+. git status
+command git is unrecognized
+r(199);
+
+. ssc install git
+checking git consistency and verifying not already installed...
+installing into /Users/anthoninlevelu/Library/Application Support/Stata/ado/plus/...
+installation complete.
+
+. help git
+
+. git status
+------ WARNING:---------
+ This program requires git to be accessible through the command line.
+ See http://git-scm.com/downloads
+------------------------
+
+. ls
+
+total 0
+
+. dir
+
+total 0
+
+. shell ls
+
+
+. pwd
+/Users/anthoninlevelu/Library/Application Support/Stata/git
+
+. ! echo # github-tutorial  >> README.md
+
+
+
+. pwd
+/Users/anthoninlevelu/Library/Application Support/Stata/git
+
+. do "/var/folders/78/3fbqqz4j45sckg41vqsfrscm0000gn/T//SD51849.000000"
+
+. 
+. cd "$DB"
+/Users/anthoninlevelu/Desktop/World Bank/2024
+
+. ! git init
+
+Initialized empty Git repository in /Users/anthoninlevelu/Desktop/World Bank/2024/.git/
+
+. 
+end of do-file
+
+. do "/var/folders/78/3fbqqz4j45sckg41vqsfrscm0000gn/T//SD51849.000000"
+
+. cd "$ROOT"
+/Users/anthoninlevelu/Desktop/World Bank/2024/PTA_project/FLRS/WB_DTA_Toolkit_dev
+
+. ! git init
+
+Initialized empty Git repository in /Users/anthoninlevelu/Desktop/World Bank/2024/PTA_project/FLRS/WB_DTA_Toolkit_dev/.git/
+
+. 
+end of do-file
+
+. do "/var/folders/78/3fbqqz4j45sckg41vqsfrscm0000gn/T//SD51849.000000"
+
+. ! echo # github-tutorial  >> README.md
+
+
+
+. 
+end of do-file
+
+. pwd
+/Users/anthoninlevelu/Desktop/World Bank/2024/PTA_project/FLRS/WB_DTA_Toolkit_dev
+
+. ! echo # github-tutorial  >> README.md
+
+
+
+. ! git add README.md
+
+fatal: pathspec 'README.md' did not match any files
+
+. ! git commit -m 'my first upload'
+
+On branch main
+
+Initial commit
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+        .DS_Store
+        0.prog/
+        1.data/
+        2.res/
+        2b.res_temp/
+        3.web_toolkit/
+        Cluster_list_2024.xlsx
+
+nothing added to commit but untracked files present (use "git add" to track)
+
+. ! git add README.md git-with-stata.stpr
+
+fatal: pathspec 'README.md' did not match any files
+
+. ! git commit -m "Initial commit :hatching_chick:"
+
+On branch main
+
+Initial commit
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+        .DS_Store
+        0.prog/
+        1.data/
+        2.res/
+        2b.res_temp/
+        3.web_toolkit/
+        Cluster_list_2024.xlsx
+
+nothing added to commit but untracked files present (use "git add" to track)
+
+. 
+. do "/var/folders/78/3fbqqz4j45sckg41vqsfrscm0000gn/T//SD51849.000000"
+
+. cd "$ROOT"
+/Users/anthoninlevelu/Desktop/World Bank/2024/PTA_project/FLRS/WB_DTA_Toolkit_dev
+
+. ! echo "# WB_2024" >> README.md
+
+
+. 
+end of do-file
+
+. do "/var/folders/78/3fbqqz4j45sckg41vqsfrscm0000gn/T//SD51849.000000"
+
+. ! git init
+
+Reinitialized existing Git repository in /Users/anthoninlevelu/Desktop/World Bank/2024/PTA_project/FLRS/WB_DTA_Toolkit_dev/.git/
+
+. 
+end of do-file
+
+. do "/var/folders/78/3fbqqz4j45sckg41vqsfrscm0000gn/T//SD51849.000000"
+
+. ! git add README.md
+
+
+. 
+end of do-file
+
+. do "/var/folders/78/3fbqqz4j45sckg41vqsfrscm0000gn/T//SD51849.000000"
+
+. ! git commit -m "Commit"
+
+[main (root-commit) cb9ad97] Commit
+ 1 file changed, 1 insertion(+)
+ create mode 100644 README.md
+
+. ! git branch -M main
+
+
+. 
+end of do-file
+
+. do "/var/folders/78/3fbqqz4j45sckg41vqsfrscm0000gn/T//SD51849.000000"
+
+. ! git remote add origin https://github.com/anthoninlevelu/WB_2024.git
+
+
+. 
+end of do-file
+
+. do "/var/folders/78/3fbqqz4j45sckg41vqsfrscm0000gn/T//SD51849.000000"
+
+. ! git push -u origin main
+
+fatal: could not read Username for 'https://github.com': Device not configured
+
+. 
+end of do-file
+
+. do "/var/folders/78/3fbqqz4j45sckg41vqsfrscm0000gn/T//SD51849.000000"
+
+. 
+. cd "$ROOT"
+/Users/anthoninlevelu/Desktop/World Bank/2024/PTA_project/FLRS/WB_DTA_Toolkit_dev
+
+. ! echo "# WB_2024" >> README.md
+
+
+. ! git init
+
+Reinitialized existing Git repository in /Users/anthoninlevelu/Desktop/World Bank/2024/PTA_project/FLRS/WB_DTA_Toolkit_dev/.git/
+
+. ! git add README.md
+
+
+. ! git commit -m "Commit"
+
+[main 4d376ce] Commit
+ 1 file changed, 1 insertion(+)
+
+. ! git branch -M main
+
+
+. ! git remote add origin https://github.com/anthoninlevelu/WB_2024.git
+
+error: remote origin already exists.
+
+. ! git push -u origin main
+
+fatal: could not read Username for 'https://github.com': Device not configured
+
+. 
+end of do-file
+
+. do "/var/folders/78/3fbqqz4j45sckg41vqsfrscm0000gn/T//SD51849.000000"
+
+. 
+. file close _all
+
+. file open git using mygit.bat, write replace
+(file mygit.bat not found)
+
+.  file write git "git remote add origin " `"""' "https://github.com/anthoninlevelu/WB_2024.git" `"""' _n
+
+.  file write git "git add --all" _n
+
+.  file write git "git commit -m "
+
+.  file write git `"""' "minor fixes" `"""' _n
+
+.  file write git "git push" _n
+
+. file close github
+file handle github not found
+r(111);
+
+end of do-file
+
+r(111);
+
+. do "/var/folders/78/3fbqqz4j45sckg41vqsfrscm0000gn/T//SD51849.000000"
+
+. file close git
+
+. 
+end of do-file
+
+. ls
+
+total 104
+drwxr-xr-x@ 11 anthoninlevelu  staff    352 Jun 28 09:30 0.prog/
+drwxr-xr-x@ 23 anthoninlevelu  staff    736 Jun 28 09:13 1.data/
+drwxr-xr-x@ 18 anthoninlevelu  staff    576 Jun 28 09:13 2.res/
+drwxr-xr-x@ 10 anthoninlevelu  staff    320 Jun 27 17:49 2b.res_temp/
+drwxr-xr-x@  4 anthoninlevelu  staff    128 Jun  7 16:23 3.web_toolkit/
+-rw-r--r--@  1 anthoninlevelu  staff  41015 Apr  4 14:20 Cluster_list_2024.xlsx
+-rw-r--r--   1 anthoninlevelu  staff     20 Jun 28 12:19 README.md
+-rw-r--r--   1 anthoninlevelu  staff    121 Jun 28 12:22 mygit.bat
+
+. ! git remote add origin https://github.com/asjadnaqvi/github-tutorial.git
+
+error: remote origin already exists.
+
+. do "/var/folders/78/3fbqqz4j45sckg41vqsfrscm0000gn/T//SD51849.000000"
+
+. ! echo "# WB_2024" >> README.md
+
+
+. ! git init
+
+Reinitialized existing Git repository in /Users/anthoninlevelu/Desktop/World Bank/2024/PTA_project/FLRS/WB_DTA_Toolkit_dev/.git/
+
+. ! git add README.md
+
+
+. ! git commit -m "Commit"
+
+[main 9d80f21] Commit
+ 1 file changed, 1 insertion(+)
+
+. ! git branch -M main
+
+
+. ! git remote add origin https://github.com/anthoninlevelu/WB_2024.git
+
+error: remote origin already exists.
+
+. 
+end of do-file
+
+. do "/var/folders/78/3fbqqz4j45sckg41vqsfrscm0000gn/T//SD51849.000000"
+
+. ! git push -u origin main
+
+fatal: could not read Username for 'https://github.com': Device not configured
+
+. 
+end of do-file
+
+. ! git remote add origin https://github.com/asjadnaqvi/github-tutorial.git
+
+error: remote origin already exists.
+
+. do "/var/folders/78/3fbqqz4j45sckg41vqsfrscm0000gn/T//SD51849.000000"
+
+. ! git push -u origin main --force
+
+fatal: could not read Username for 'https://github.com': Device not configured
+
+. 
+end of do-file
+
+. do "/var/folders/78/3fbqqz4j45sckg41vqsfrscm0000gn/T//SD51849.000000"
+
+. 
+. cd "$ROOT"
+/Users/anthoninlevelu/Desktop/World Bank/2024/PTA_project/FLRS/WB_DTA_Toolkit_dev
+
+. ! echo "# WB_2024" >> README.md
+
+
+. ! git init
+
+Reinitialized existing Git repository in /Users/anthoninlevelu/Desktop/World Bank/2024/PTA_project/FLRS/WB_DTA_Toolkit_dev/.git/
+
+. ! git add README.md
+
+
+. ! git commit -m "Commit"
+
+[main 9449afa] Commit
+ 1 file changed, 1 insertion(+)
+
+. ! git branch -M main
+
+
+. ! git remote set-url origin git@github.com:anthoninlevelu/WB_2024.git
+
+
+. 
+end of do-file
+
+. do "/var/folders/78/3fbqqz4j45sckg41vqsfrscm0000gn/T//SD51849.000000"
+
+. ! git push -u origin main --force
+
+Host key verification failed.
+fatal: Could not read from remote repository.
+
+Please make sure you have the correct access rights
+and the repository exists.
+
+. 
+end of do-file
+
+. ! ssh-keygen
+
+Generating public/private rsa key pair.
+Enter file in which to save the key (/Users/anthoninlevelu/.ssh/id_rsa): 
+. do "/var/folders/78/3fbqqz4j45sckg41vqsfrscm0000gn/T//SD51849.000000"
+
+. ! ssh-keyscan -H github.com >> ~/.ssh/known_hosts
+
+zsh:1: no such file or directory: /Users/anthoninlevelu/.ssh/known_hosts
+
+. 
+end of do-file
+
+. do "/var/folders/78/3fbqqz4j45sckg41vqsfrscm0000gn/T//SD51849.000000"
+
+. ! ssh-keygen
+
+Generating public/private rsa key pair.
+Enter file in which to save the key (/Users/anthoninlevelu/.ssh/id_rsa): 
+. ! ~/.ssh/id_rsa
+
+zsh:1: no such file or directory: /Users/anthoninlevelu/.ssh/id_rsa
+
+. 
+end of do-file
+
+. do "/var/folders/78/3fbqqz4j45sckg41vqsfrscm0000gn/T//SD51849.000000"
+
+. cd "$ROOT"
+/Users/anthoninlevelu/Desktop/World Bank/2024/PTA_project/FLRS/WB_DTA_Toolkit_dev
+
+. 
+. ! echo "# WB_2024" >> README.md
+
+
+. ! git init
+
+Reinitialized existing Git repository in /Users/anthoninlevelu/Desktop/World Bank/2024/PTA_project/FLRS/WB_DTA_Toolkit_dev/.git/
+
+. ! git status
+
+On branch main
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+        modified:   README.md
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+        .DS_Store
+        0.prog/
+        1.data/
+        2.res/
+        2b.res_temp/
+        3.web_toolkit/
+        Cluster_list_2024.xlsx
+        mygit.bat
+
+no changes added to commit (use "git add" and/or "git commit -a")
+
+. 
+end of do-file
+
+. do "/var/folders/78/3fbqqz4j45sckg41vqsfrscm0000gn/T//SD51849.000000"
+
+. ! echo "# WB_2024" >> README.md
+
+
+. ! git init
+
+Reinitialized existing Git repository in /Users/anthoninlevelu/Desktop/World Bank/2024/PTA_project/FLRS/WB_DTA_Toolkit_dev/.git/
+
+. ! git status
+
+On branch main
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+        modified:   README.md
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+        .DS_Store
+        0.prog/
+        1.data/
+        2.res/
+        2b.res_temp/
+        3.web_toolkit/
+        Cluster_list_2024.xlsx
+
+no changes added to commit (use "git add" and/or "git commit -a")
+
+. ! git add README.md
+
+
+. ! git commit -m "commit the readme"
+
+[main b3facde] commit the readme
+ 1 file changed, 2 insertions(+)
+
+. 
+end of do-file
+
+. git status
+------ WARNING:---------
+ This program requires git to be accessible through the command line.
+ See http://git-scm.com/downloads
+------------------------
+
+. ! git status
+
+fatal: not a git repository (or any of the parent directories): .git
+
+. do "/var/folders/78/3fbqqz4j45sckg41vqsfrscm0000gn/T//SD51849.000000"
+
+. ! echo "# WB_2024" >> README.md
+
+
+. ! git init
+
+Initialized empty Git repository in /Users/anthoninlevelu/Library/Application Support/Stata/git/.git/
+
+. ! git status
+
+On branch main
+
+No commits yet
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+        README.md
+
+nothing added to commit but untracked files present (use "git add" to track)
+
+. ! git add README.md
+
+
+. ! git commit -m "commit the readme"
+
+[main (root-commit) bbfcf3c] commit the readme
+ 1 file changed, 1 insertion(+)
+ create mode 100644 README.md
+
+. 
+end of do-file
+
+. do "/var/folders/78/3fbqqz4j45sckg41vqsfrscm0000gn/T//SD51849.000000"
+
+. ! echo "# WB_2024" >> README.md
+
+
+. ! git init
+
+Reinitialized existing Git repository in /Users/anthoninlevelu/Library/Application Support/Stata/git/.git/
+
+. ! git status
+
+On branch main
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+        modified:   README.md
+
+no changes added to commit (use "git add" and/or "git commit -a")
+
+. ! git add README.md
+
+
+. ! git commit -m "commit the readme"
+
+[main 8056cc1] commit the readme
+ 1 file changed, 1 insertion(+)
+
+. 
+end of do-file
+
+. do "/var/folders/78/3fbqqz4j45sckg41vqsfrscm0000gn/T//SD51849.000000"
+
+. cd "$ROOT"
+/Users/anthoninlevelu/Desktop/World Bank/2024/PTA_project/FLRS/WB_DTA_Toolkit_dev
+
+. 
+. ! echo "# WB_2024" >> README.md
+
+
+. ! git init
+
+Reinitialized existing Git repository in /Users/anthoninlevelu/Desktop/World Bank/2024/PTA_project/FLRS/WB_DTA_Toolkit_dev/.git/
+
+. ! git status
+
+On branch main
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+        modified:   README.md
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+        .DS_Store
+        0.prog/
+        1.data/
+        2.res/
+        2b.res_temp/
+        3.web_toolkit/
+        Cluster_list_2024.xlsx
+
+no changes added to commit (use "git add" and/or "git commit -a")
+
+. ! git add README.md
+
+
+. ! git commit -m "commit the readme"
+
+[main c291550] commit the readme
+ 1 file changed, 1 insertion(+)
+
+. ! git branch -M main
+
+
+. ! git remote set-url origin git@github.com:anthoninlevelu/WB_2024.git
+
+
+. 
+end of do-file
+
+. do "/var/folders/78/3fbqqz4j45sckg41vqsfrscm0000gn/T//SD51849.000000"
+
+. cd "$ROOT"
+/Users/anthoninlevelu/Desktop/World Bank/2024/PTA_project/FLRS/WB_DTA_Toolkit_dev
+
+. 
+. ! echo "# WB_2024" >> README.md
+
+
+. ! git init
+
+Reinitialized existing Git repository in /Users/anthoninlevelu/Desktop/World Bank/2024/PTA_project/FLRS/WB_DTA_Toolkit_dev/.git/
+
+. ! git status
+
+On branch main
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+        modified:   README.md
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+        .DS_Store
+        0.prog/
+        1.data/
+        2.res/
+        2b.res_temp/
+        3.web_toolkit/
+        Cluster_list_2024.xlsx
+
+no changes added to commit (use "git add" and/or "git commit -a")
+
+. ! git add README.md
+
+
+. ! git commit -m "commit the readme"
+
+[main dc714e2] commit the readme
+ 1 file changed, 1 insertion(+)
+
+. ! git branch -M main
+
+
+. ! git remote set-url origin git@github.com:anthoninlevelu/WB_2024.git
+
+
+. 
+end of do-file
+
+. do "/var/folders/78/3fbqqz4j45sckg41vqsfrscm0000gn/T//SD51849.000000"
+
+. cd "$ROOT"
+/Users/anthoninlevelu/Desktop/World Bank/2024/PTA_project/FLRS/WB_DTA_Toolkit_dev
+
+. 
+. ! echo "# WB_2024" >> README.md
+
+
+. ! git init
+
+Reinitialized existing Git repository in /Users/anthoninlevelu/Desktop/World Bank/2024/PTA_project/FLRS/WB_DTA_Toolkit_dev/.git/
+
+. ! git status
+
+On branch main
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+        modified:   README.md
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+        .DS_Store
+        0.prog/
+        1.data/
+        2.res/
+        2b.res_temp/
+        3.web_toolkit/
+        Cluster_list_2024.xlsx
+
+no changes added to commit (use "git add" and/or "git commit -a")
+
+. ! git add README.md
+
+
+. ! git commit -m "commit the readme"
+
+[main a93442e] commit the readme
+ 1 file changed, 1 insertion(+)
+
+. ! git branch -M main
+
+
+. ! git remote set-url origin git@github.com:anthoninlevelu/WB_2024.git
+
+
+. 
+end of do-file
+
+. do "/var/folders/78/3fbqqz4j45sckg41vqsfrscm0000gn/T//SD51849.000000"
+
+. ! git push -u origin main --force
+
+Host key verification failed.
+fatal: Could not read from remote repository.
+
+Please make sure you have the correct access rights
+and the repository exists.
+
+. 
+end of do-file
+
+. do "/var/folders/78/3fbqqz4j45sckg41vqsfrscm0000gn/T//SD51849.000000"
+
+. cd "$ROOT"
+/Users/anthoninlevelu/Desktop/World Bank/2024/PTA_project/FLRS/WB_DTA_Toolkit_dev
+
+. 
+. ! echo "# WB_2024" >> README.md
+
+
+. ! git init
+
+Reinitialized existing Git repository in /Users/anthoninlevelu/Desktop/World Bank/2024/PTA_project/FLRS/WB_DTA_Toolkit_dev/.git/
+
+. ! git status
+
+On branch main
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+        modified:   README.md
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+        .DS_Store
+        0.prog/
+        1.data/
+        2.res/
+        2b.res_temp/
+        3.web_toolkit/
+        Cluster_list_2024.xlsx
+
+no changes added to commit (use "git add" and/or "git commit -a")
+
+. ! git add README.md
+
+
+. ! git commit -m "commit the readme"
+
+[main 6ef77de] commit the readme
+ 1 file changed, 1 insertion(+)
+
+. ! git branch -M main
+
+
+. ! git remote set-url origin git@github.com:anthoninlevelu/WB_2024.git
+
+
+. ! git push -u origin main --force
+
+Host key verification failed.
+fatal: Could not read from remote repository.
+
+Please make sure you have the correct access rights
+and the repository exists.
+
+. 
+end of do-file
+
+. do "/var/folders/78/3fbqqz4j45sckg41vqsfrscm0000gn/T//SD51849.000000"
+
+. file close _all
+
+. file open git using mygit.bat, write replace
+(file mygit.bat not found)
+
+.  file write git "git remote set-url origin git@github.com:anthoninlevelu/WB_2024.git" `"""' _n
+
+.  file write git "git add --all" _n
+
+.  file write git "git commit -m "
+
+.  file write git `"""' "minor fixes" `"""' _n
+
+.  file write git "git push" _n
+
+. file close git 
+
+. 
+end of do-file
+
+. do "/var/folders/78/3fbqqz4j45sckg41vqsfrscm0000gn/T//SD51849.000000"
+
+. 
+. file close _all
+
+. file open git using mygit.bat, write replace
+
+.  file write git "git remote add origin https://github.com/anthoninlevelu/WB_2024.git" `"""' _n
+
+.  file write git "git add --all" _n
+
+.  file write git "git commit -m "
+
+.  file write git `"""' "minor fixes" `"""' _n
+
+.  file write git "git push" _n
+
+. file close git 
+
+. 
+end of do-file
+
+. do "/var/folders/78/3fbqqz4j45sckg41vqsfrscm0000gn/T//SD51849.000000"
+
+. cd "$ROOT"
+/Users/anthoninlevelu/Desktop/World Bank/2024/PTA_project/FLRS/WB_DTA_Toolkit_dev
+
+. 
+. ! echo "# WB_2024" >> README.md
+
+
+. ! git init
+
+Reinitialized existing Git repository in /Users/anthoninlevelu/Desktop/World Bank/2024/PTA_project/FLRS/WB_DTA_Toolkit_dev/.git/
+
+. ! git status
+
+On branch main
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+        modified:   README.md
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+        .DS_Store
+        0.prog/
+        1.data/
+        2.res/
+        2b.res_temp/
+        3.web_toolkit/
+        Cluster_list_2024.xlsx
+        mygit.bat
+
+no changes added to commit (use "git add" and/or "git commit -a")
+
+. ! git add README.md
+
+
+. ! git commit -m "commit the readme"
+
+[main 030edf6] commit the readme
+ 1 file changed, 1 insertion(+)
+
+. ! git branch -M main
+
+
+. ! git remote set-url origin git@github.com:anthoninlevelu/WB_2024.git
+
+
+. ! git push -u origin main --force
+
+Host key verification failed.
+fatal: Could not read from remote repository.
+
+Please make sure you have the correct access rights
+and the repository exists.
+
+. 
+end of do-file
+

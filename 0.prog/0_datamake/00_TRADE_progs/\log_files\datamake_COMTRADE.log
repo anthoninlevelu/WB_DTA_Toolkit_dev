@@ -1,0 +1,32 @@
+
+. 
+. 
+. ********************************************************************************
+. ********************************************************************************
+. *   build TP for Manufacturing only: UNIDO + COMTRADE
+. cd "$COMTRADE"
+/Users/anthoninlevelu/Desktop/World Bank/2024/PTA_project/FLRS/WB_DTA_Toolkit_dev/1.data/COMTRADE
+
+. 
+. qui unzipfile "sitc_import_2digit_isic_iso", replace
+
+. 
+end of do-file
+
+. pwd
+/Users/anthoninlevelu/Desktop/World Bank/2024/PTA_project/FLRS/WB_DTA_Toolkit_dev/1.data/COMTRADE
+
+. do "/var/folders/78/3fbqqz4j45sckg41vqsfrscm0000gn/T//SD51849.000000"
+
+. use "sitc_import_2digit_isic_iso.dta", clear 
+
+. 
+end of do-file
+
+. do "/var/folders/78/3fbqqz4j45sckg41vqsfrscm0000gn/T//SD51849.000000"
+
+. 
+. ********************************************************************************
+. ********************************************************************************
+. 
+. cap     log close

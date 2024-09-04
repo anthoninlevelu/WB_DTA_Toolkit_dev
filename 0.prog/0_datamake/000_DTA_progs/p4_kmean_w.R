@@ -1,0 +1,252 @@
+# UPDATE R 
+#install.packages("installr")
+#library(installr)
+#updateR()
+
+ 
+ 
+#
+#      A general equilibrium (GE) assessment of the economic impact of
+#         Deep regional Trade Agreements (DTAs)
+#
+#                 by Lionel Fontagné and Gianluca Santoni
+#
+#                         this version: January 2024
+#     
+ 
+ 
+
+# Install required packages if not already installed
+if (!require("flexclust")) install.packages("flexclust")
+if (!require("writexl")) install.packages("writexl")
+if (!require("tidyverse")) install.packages("tidyverse")
+if (!require("cluster")) install.packages("cluster")
+if (!require("factoextra")) install.packages("factoextra")
+if (!require("NbClust")) install.packages("NbClust")
+if (!require("fpc")) install.packages("fpc")
+if (!require("haven")) install.packages("haven")
+
+ 
+ 
+
+# Begin by deleting any previously defined variables
+rm(list = ls())
+
+# Set working directory
+# setwd("d:/santoni/Dropbox/WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/clusters")
+setwd("/Users/anthoninlevelu/Desktop/World Bank/2024/PTA_project/FLRS/WB_DTA_Toolkit_dev/2.res/clusters")
+# setwd("C:/Users/gianl/Dropbox/WW_other_projs/WB_2024/WB_GE/WB_DTA_Toolkit/2.res/clusters")
+getwd()
+
+# Load required packages
+library(conflicted)
+library(dplyr)
+library(flexclust)
+library(tidyverse)
+library(writexl)
+library(cluster)
+library(factoextra)
+library(NbClust)
+library(haven)
+library(fpc)
+library(ggplot2)
+
+
+# Upload data from categorical rta provision (not 1-0) ----
+
+
+set.seed(17101979)
+
+kmean_r <- read_dta("kmean_r_w.dta")
+
+df <- data.frame(kmean_r)
+rownames(df) <- df[,1]
+df[,1] <- NULL
+
+k.mat <- as.matrix(df)
+data_scaled <- scale(k.mat)
+
+# Determining Optimal Clusters  ---- 
+ 
+
+set.seed(1710979)
+
+# The default distance computed is the Euclidean, however support Manhattan, Pearson correlation distance, Spearman correlation distance, Kendall correlation distance
+distance <- get_dist(df, method = "euclidean")
+
+# Gap Statistic Method for K-means clustering to find the optimal number of clusters
+fviz_nbclust(df, kmeans, method = "gap_stat", nboot = 500) + theme_minimal()
+
+# Average Silhouette Method
+fviz_nbclust(k.mat, kmeans, diss = dist(k.mat, method = "euclidean"), method = "silhouette")
+fviz_nbclust(k.mat, kmeans, diss = dist(k.mat, method = "manhattan"), method = "silhouette")
+
+# Average Elbow Method
+fviz_nbclust(k.mat, kmeans, diss = dist(k.mat, method = "euclidean"), method = "wss")
+fviz_nbclust(k.mat, kmeans, diss = dist(k.mat, method = "manhattan"), method = "wss")
+
+# NbClust for determining optimal clusters
+resE <- NbClust(k.mat, distance = "euclidean", min.nc = 2, max.nc = 10, method = "kmeans", index = "silhouette")
+resE$All.index
+resE$Best.nc
+resE$Best.partition
+
+resM <- NbClust(k.mat, distance = "manhattan", min.nc = 2, max.nc = 10, method = "kmeans", index = "silhouette")
+resM$All.index
+resM$Best.nc
+resM$Best.partition
+
+
+# Section 1: Clustering with kmeansruns (Euclidean Distance, unscaled) ----
+
+
+optimal_clusters_ch <- kmeansruns(k.mat, krange = 2:5, critout = TRUE, criterion = "ch",
+                                  iter.max = 100, nstart = 1000)
+
+# Extracting clusters and centers
+clusters_euclidean_ch <- optimal_clusters_ch$cluster
+centers_euclidean_runs <- optimal_clusters_ch$centers
+
+# Visualization (Euclidean)
+fviz_cluster(list(data = k.mat, cluster = clusters_euclidean_ch),
+             geom = "point", stand = FALSE, ellipse = TRUE, ellipse.type = "norm") + theme_bw()
+
+plotcluster(k.mat, clusters_euclidean_ch)
+dp <- discrproj(k.mat, clusters_euclidean_ch)
+plot(dp$proj[,1], dp$proj[,2], pch = clusters_euclidean_ch + 48, col = clusters_euclidean_ch)
+
+# Prepare data for export (Euclidean)
+test1 <- list(kmean_r[["id_agree"]], clusters_euclidean_ch, dp$proj[,1], dp$proj[,2])
+res_1 <- as.data.frame(do.call(cbind, test1))
+
+# Export to Excel (Euclidean)
+write_xlsx(res_1, "kmeansruns_xyeucl_ch.xlsx")
+
+
+# Section 2: Clustering with PAM (Euclidean and Manhattan Distance: unscaled) ---- 
+
+
+# Euclidean distance
+pam_dist_matrix_e <- dist(k.mat, method = "euclidean")
+optimal_clusters_pam_e <- pam(pam_dist_matrix_e, k = 3, diss = TRUE, nstart = 100)
+
+# Extracting clusters and medoids
+clusters_pam_e <- optimal_clusters_pam_e$clustering
+medoids_pam_e <- optimal_clusters_pam_e$medoids
+
+# Prepare data for export (Euclidean)
+test2 <- list(kmean_r[["id_agree"]], clusters_pam_e)
+res_2 <- as.data.frame(do.call(cbind, test2))
+
+# Export to Excel (PAM Euclidean)
+write_xlsx(res_2, "kmedoids_xyeucl_pam.xlsx")
+
+# Manhattan distance
+pam_dist_matrix_m <- dist(k.mat, method = "manhattan")
+optimal_clusters_pam_m <- pam(pam_dist_matrix_m, k = 3, diss = TRUE, nstart = 100)
+
+# Extracting clusters and medoids
+clusters_pam_m <- optimal_clusters_pam_m$clustering
+medoids_pam_m <- optimal_clusters_pam_m$medoids
+
+# Prepare data for export (Manhattan)
+test3 <- list(kmean_r[["id_agree"]], clusters_pam_m)
+res_3 <- as.data.frame(do.call(cbind, test3))
+
+# Export to Excel (PAM Manhattan)
+write_xlsx(res_3, "kmedoids_xymanh_pam.xlsx")
+
+
+# Section 3: Standard k-means clustering (Euclidean and Manhattan Distance, unscaled) ----
+
+# Euclidean distance
+k3_euclidean <- kmeans(k.mat, centers = 3, nstart = 500, iter.max = 10000)
+fviz_cluster(k3_euclidean, data = k.mat, geom = "point", stand = FALSE, ellipse = TRUE, ellipse.type = "norm") + theme_bw()
+
+plotcluster(k.mat, k3_euclidean$cluster)
+dp_euclidean <- discrproj(df, k3_euclidean$cluster)
+plot(dp_euclidean$proj[,1], dp_euclidean$proj[,2], pch = k3_euclidean$cluster + 48, col = k3_euclidean$cluster)
+
+test4 <- list(kmean_r[["id_agree"]], k3_euclidean[["cluster"]], dp_euclidean$proj[,1], dp_euclidean$proj[,2])
+res_4 <- as.data.frame(do.call(cbind, test4))
+
+write_xlsx(res_4, "kmeans_coordinates.xlsx")
+
+# Manhattan distance
+custom_kmeans_manhattan <- function(x, centers) {
+  dist_matrix <- dist(x, method = "manhattan")
+  pam_fit <- pam(dist_matrix, diss = TRUE, k = centers)
+  list(cluster = pam_fit$clustering)
+}
+
+optimal_clusters_kmeans_manhattan <- custom_kmeans_manhattan(k.mat, 3)
+fviz_cluster(list(data = k.mat, cluster = optimal_clusters_kmeans_manhattan$cluster),
+             geom = "point", stand = FALSE, ellipse = TRUE, ellipse.type = "norm") + theme_bw()
+
+dp_manhattan <- discrproj(df, optimal_clusters_kmeans_manhattan$cluster)
+plot(dp_manhattan$proj[,1], dp_manhattan$proj[,2], pch = optimal_clusters_kmeans_manhattan$cluster + 48, col = optimal_clusters_kmeans_manhattan$cluster)
+
+test5 <- list(kmean_r[["id_agree"]], optimal_clusters_kmeans_manhattan$cluster, dp_manhattan$proj[,1], dp_manhattan$proj[,2])
+res_5 <- as.data.frame(do.call(cbind, test5))
+
+write_xlsx(res_5, "kmeans_manhattan_coordinates.xlsx")
+
+# Section 4: Standard k-means clustering (Euclidean Distance, scaled) ----
+ 
+k3_scaled <- kmeans(data_scaled, centers = 3, nstart = 500, iter.max = 10000)
+
+fviz_cluster(k3_scaled, data = data_scaled, geom = "point", stand = FALSE, ellipse = TRUE, ellipse.type = "norm") + theme_bw()
+
+test6 <- list(kmean_r[["id_agree"]], k3_scaled[["cluster"]], dp$proj[,1], dp$proj[,2])
+res_6 <- as.data.frame(do.call(cbind, test6))
+
+write_xlsx(res_6, "kmeans_scaled_coordinates.xlsx")
+
+# Section 5: Visualization and Comparison ----
+
+# Plotting function for comparing clustering results
+plot_clusters <- function(clusters, data, title) {
+  fviz_cluster(list(data = data, cluster = clusters), geom = "point", stand = FALSE, ellipse = TRUE, ellipse.type = "norm") + ggtitle(title) + theme_bw()
+}
+
+par(mfrow = c(2, 2))  # Set up the plotting area for comparison
+
+# Plot flexible k-means with Euclidean distance
+plot_clusters(clusters_euclidean_ch, k.mat, "Flexible k-means (Euclidean)")
+
+# Plot standard k-means with Euclidean distance
+plot_clusters(k3_euclidean$cluster, k.mat, "Standard k-means (Euclidean)")
+
+# Plot standard k-means with Manhattan distance
+plot_clusters(optimal_clusters_kmeans_manhattan$cluster, k.mat, "Standard k-means (Manhattan)")
+
+# Section 6: Exporting Combined Results ----------------------------------------
+
+test7 <- list(
+  rownames(df), 
+  resE[["Best.partition"]], 
+  resM[["Best.partition"]], 
+  k3_euclidean[["cluster"]], 
+  k3_scaled[["cluster"]], 
+  clusters_euclidean_ch, 
+  clusters_pam_e, 
+  clusters_pam_m
+)
+
+res_7 <- as.data.frame(do.call(cbind, test7))
+
+# Renaming columns for clarity
+colnames(res_7) <- c(
+  "ID", 
+  "Best.partition_Euclidean", 
+  "Best.partition_Manhattan", 
+  "KMeans_Euclidean", 
+  "KMeans_Scaled", 
+  "Clusters_Euclidean_CH", 
+  "PAM_Euclidean", 
+  "PAM_Manhattan"
+)
+
+write_xlsx(res_7, "kmeans_final_w.xlsx")
+ 
+ 
