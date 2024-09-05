@@ -25,7 +25,7 @@ global all_agree "1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 24 25
 * global for LE or non- LE (this should be added to the '0.Master_DTA.do' do.file.)
 
 macro drop le
-global le "_le"
+// global le "_le"
  
 
 
@@ -142,39 +142,39 @@ foreach pta of global all_agree {
 
 		// Add LE information
 		
-		preserve
-		u "$DATA/Alvaro_31_07/PTA_Policy_Areas.dta", clear
-		foreach var of varlist h_IPR ExportTaxes Customs SPS TBT STE AD CVM h_Investment /// 
-			StateAid Services PublicProcurement VisaandAsylum CompetitionPolicy EnvironmentalLaws ///
-			LabourMarketRegulation MovementofCapital {
-				rename `var' p_`var'
-		}
-		reshape long p_, i(WBID) j(prov_, string) 
-		rename (WBID prov_ p_) (id_agree Area status)
-		
-		replace Area = "Antidumping Duties" if Area == "AD"
-		replace Area = "Competition Policy" if Area == "CompetitionPolicy"
-		replace Area = "Countervailing Duties" if Area == "CVM"
-		replace Area = "Environmental Laws" if Area == "EnvironmentalLaws"
-		replace Area = "Export Restrictions" if Area == "ExportTaxes"
-		replace Area = "Intellectual Property Rights (IPR)" if Area == "h_IPR"
-		replace Area = "Investment" if Area == "h_Investment"
-		replace Area = "Labor Market Regulations" if Area == "Labor Market Regulations"
-		replace Area = "Movement of Capital" if Area == "MovementofCapital"
-		replace Area = "Public Procurement" if Area == "PublicProcurement"
-		*NA for RoOs
-		replace Area = "Rules of Origin" if Area == "Rules of Origin" 
-		replace Area = "Sanitary and Phytosanitary Measures (SPS)" if Area == "SPS"
-		replace Area = "Services" if Area == "Services"
-		replace Area = "State Owned Enterprises" if Area == "STE"
-		replace Area = "Subsidies" if Area == "StateAid"
-		replace Area = "Technical Barriers to Trade (TBT)" if Area == "TBT"
-		replace Area = "Trade Facilitation and Customs" if Area == "Customs"
-        replace Area = "Visa and Asylum" if Area == "VisaandAsylum"
+				preserve
+				u "$DATA/Alvaro_31_07/PTA_Policy_Areas.dta", clear
+				foreach var of varlist h_IPR ExportTaxes Customs SPS TBT STE AD CVM h_Investment /// 
+					StateAid Services PublicProcurement VisaandAsylum CompetitionPolicy EnvironmentalLaws ///
+					LabourMarketRegulation MovementofCapital {
+						rename `var' p_`var'
+				}
+				reshape long p_, i(WBID) j(prov_, string) 
+				rename (WBID prov_ p_) (id_agree Area status)
+				
+				replace Area = "Antidumping Duties" if Area == "AD"
+				replace Area = "Competition Policy" if Area == "CompetitionPolicy"
+				replace Area = "Countervailing Duties" if Area == "CVM"
+				replace Area = "Environmental Laws" if Area == "EnvironmentalLaws"
+				replace Area = "Export Restrictions" if Area == "ExportTaxes"
+				replace Area = "Intellectual Property Rights (IPR)" if Area == "h_IPR"
+				replace Area = "Investment" if Area == "h_Investment"
+				replace Area = "Labor Market Regulations" if Area == "Labor Market Regulations"
+				replace Area = "Movement of Capital" if Area == "MovementofCapital"
+				replace Area = "Public Procurement" if Area == "PublicProcurement"
+				*NA for RoOs
+				replace Area = "Rules of Origin" if Area == "Rules of Origin" 
+				replace Area = "Sanitary and Phytosanitary Measures (SPS)" if Area == "SPS"
+				replace Area = "Services" if Area == "Services"
+				replace Area = "State Owned Enterprises" if Area == "STE"
+				replace Area = "Subsidies" if Area == "StateAid"
+				replace Area = "Technical Barriers to Trade (TBT)" if Area == "TBT"
+				replace Area = "Trade Facilitation and Customs" if Area == "Customs"
+				replace Area = "Visa and Asylum" if Area == "VisaandAsylum"
 
-		tempfile horizontal
-		save `horizontal'
-		restore
+				tempfile horizontal
+				save `horizontal'
+				restore
 		
 		*we drop observations from the horizontal database*
 		merge m:1 Area id_agree using `horizontal'
@@ -1157,45 +1157,64 @@ foreach pta of global all_agree {
 *** SUMMARY RESULTS ***
 
 
-// *1.1. summarize results : which provisions for each PTA allow to go from either shallow/med to deep (LE) ?
-//
-// * Comment here: 
-//
-// import excel "$TEMP/switch_opt1__le.xlsx", firstrow clear
-// destring _all, replace
-// gen switch_ = 0
-// replace switch_ = 1 if k3 == 2 & k3 != k3_b 
-// tab provision if switch_ == 1 
-//
-// //           3 |         23       15.44       15.44
-// //           4 |          4        2.68       18.12
-// //           5 |         15       10.07       28.19
-// //           8 |         17       11.41       39.60
-// //          10 |         16       10.74       50.34
-// //          12 |         52       34.90       85.23
-// //          14 |          6        4.03       89.26
-// //          15 |         16       10.74      100.00
-//
-//
-//
-// *1.2. summarize results : which provisions for each PTA allow to go from either shallow/med to deep (non-LE)?
-//
-// * Comment here: 
-//
-// import excel "$TEMP/switch_opt1___nole.xlsx", firstrow clear
-// destring _all, replace
-// gen switch_ = 0
-// replace switch_ = 1 if k3 == 2 & k3 != k3_b
-// tab provision if switch_ == 1 
-//
-//
-// //           1 |        290       39.19       39.19
-// //           3 |         28        3.78       42.97
-// //           9 |         77       10.41       53.38
-// //          12 |        339       45.81       99.19
-// //          16 |          2        0.27       99.46
-// //          18 |          4        0.54      100.00
-//
+*1.1. summarize results : which provisions for each PTA allow to go from either shallow/med to deep (LE) ?
+
+* Comment here: 
+
+import excel "$TEMP/switch_opt1__le.xlsx", firstrow clear
+destring _all, replace
+gen switch_ = 0
+replace switch_ = 1 if k3 == 0 & k3 != k3_b 
+tab provision if switch_ == 1 
+sort id_agree
+by id_agree: egen switchany_ = sum(switch_)
+replace switchany_ = 1 if switchany_ >= 1
+replace switchany_ = 1 if k3_baseline == 0
+
+//           1 |        321       14.37       14.37
+//           2 |        156        6.98       21.35
+//           3 |        121        5.42       26.77
+//           4 |        177        7.92       34.69
+//           5 |        167        7.48       42.17
+//           6 |         16        0.72       42.88
+//           7 |        204        9.13       52.01
+//           8 |        181        8.10       60.12
+//           9 |         37        1.66       61.77
+//          10 |        178        7.97       69.74
+//          11 |         16        0.72       70.46
+//          12 |         59        2.64       73.10
+//          13 |        159        7.12       80.21
+//          14 |         13        0.58       80.80
+//          15 |        173        7.74       88.54
+//          16 |         79        3.54       92.08
+//          17 |        156        6.98       99.06
+//          18 |         21        0.94      100.00
+
+
+
+
+*1.2. summarize results : which provisions for each PTA allow to go from either shallow/med to deep (non-LE)?
+
+* Comment here: 
+
+import excel "$TEMP/switch_opt1__nole.xlsx", firstrow clear
+destring _all, replace
+gen switch_ = 0
+replace switch_ = 1 if k3 == 0 & k3 != k3_b 
+tab provision if switch_ == 1 
+sort id_agree
+by id_agree: egen switchany_ = sum(switch_)
+replace switchany_ = 1 if switchany_ >= 1
+replace switchany_ = 1 if k3_baseline == 0
+
+
+//           1 |        290       39.19       39.19
+//           3 |         28        3.78       42.97
+//           9 |         77       10.41       53.38
+//          12 |        339       45.81       99.19
+//          16 |          2        0.27       99.46
+//          18 |          4        0.54      100.00
+
 
 
 
