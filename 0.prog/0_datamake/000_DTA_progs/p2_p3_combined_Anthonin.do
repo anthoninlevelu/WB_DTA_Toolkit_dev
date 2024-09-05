@@ -7,24 +7,21 @@ cap 	log close
 capture log using "$PROG/log_file/p2_p3_combined", text replace
 
 ** The goal is to recreate datasets for each AreaXPTA that are pushed to 1 ** 
-** We also recreate files for Legally Enforceable. PTAs.
 ** Then we redo the cluster with those new datasets and compare with the baseline **
 ** Both steps (p2 and p3) are combined in one do-file using tempfile to avoid creating new datasets at every iteration.
 
 
-* global for AreaXPTA
+* global for Area
 
 global area `" "Antidumping Duties" "Competition Policy" "Countervailing Duties" "Environmental Laws" "Export Restrictions" "Intellectual Property Rights (IPR)" "Investment" "Labor Market Regulations" "Movement of Capital" "Public Procurement" "Rules of Origin" "Sanitary and Phytosanitary Measures (SPS)" "Services" "State Owned Enterprises" "Subsidies" "Technical Barriers to Trade (TBT)" "Trade Facilitation and Customs" "Visa and Asylum"  "' 
-
 
 * global for all PTA (we create counterfactual dataset temp files for each PTA)
 
 global all_agree "1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64 65 66 67 68 69 70 71 72 73 74 75 76 77 78 79 80 81 82 83 84 85 86 87 88 89 91 92 93 94 95 96 97 98 99 100 101 102 103 104 105 106 107 108 109 110 111 112 113 114 115 116 117 118 119 120 121 122 123 124 125 126 127 128 129 130 131 132 133 134 135 136 137 138 139 140 141 142 143 144 145 146 147 148 149 150 151 152 153 154 155 156 157 158 159 160 161 162 163 164 165 167 168 169 170 171 172 173 174 175 176 177 178 179 180 181 183 184 186 187 188 189 190 191 192 194 195 196 197 198 199 200 201 202 203 204 205 206 207 208 209 210 211 212 213 214 215 216 217 218 220 221 222 223 224 225 226 227 228 229 230 231 232 233 234 235 236 237 238 239 240 241 242 243 244 245 246 247 248 249 250 251 252 253 254 255 256 257 258 259 260 261 262 263 264 265 266 267 268 269 270 271 272 273 274 275 276 277 278 279 280 281 282 283 284 285 286 287 288 289 290 291 292 293 294 295 296 297 298 299 300 301 302 303 304 305 306 307 308 309 311 312 313 318 319 320 321 322 323 324 326 327 330 331 332 333 338 340 341 342 343 345 346 347 348 349 350 351 352 353 354 355 356 357 358 359 360 361 363 364 366 367 368 369 370 372 373 374 375 376 377 378 379 380 381 382 383 384 385 386 388 389 390 391 393 394 395 396 398 399 400"
 
-
 * global for LE or non- LE (this should be added to the '0.Master_DTA.do' do.file.)
 
-macro drop le
+cap macro drop le
 // global le "_le"
  
 
@@ -38,6 +35,8 @@ if "$le" == "_le" {
 		putexcel B1 = "provision"
 		putexcel C1 = "k3_baseline"
 		putexcel D1 = "k3" 
+		putexcel E1 = "deep_number_117" 
+
 }
 
 else {
@@ -46,6 +45,7 @@ else {
 		putexcel B1 = "provision"
 		putexcel C1 = "k3_baseline"
 		putexcel D1 = "k3" 
+		putexcel E1 = "deep_number_117" 
 }
 
 
@@ -192,6 +192,7 @@ foreach pta of global all_agree {
 
 		di "Area number: `are'" 
 		di "Push provision to 1"
+
 		replace rta_deep = 1 if (rta_deep == 0 | rta_deep == .) & (Area == "`are'" & id_agree == `pta')
 		replace rta_deep_le = 1 if (rta_deep_le == 0 | rta_deep_le == .) & (Area == "`are'" & id_agree == `pta')
 
@@ -553,7 +554,6 @@ foreach pta of global all_agree {
 									clfuzz f3, dist(dist_L2) id(id_agree) k(3)
 
 
-
 									* gen baseline indicators *
 
 									rename g3  				g3_baseline
@@ -566,7 +566,8 @@ foreach pta of global all_agree {
 									
 									* Fix deep PTA cluster number = 0 based on EC-enlargement 27 (117)
 									
-									sum baseline_k3 if id_agree == 117
+									cap macro drop _deep
+									qui sum baseline_k3 if id_agree == 117
 									local deep = r(mean)
 									replace baseline_k3 = 0 if baseline_k3 == `deep'
 									tab baseline_k3
@@ -580,10 +581,11 @@ foreach pta of global all_agree {
 							qui putexcel A`j' = "`pta'"
 							qui putexcel B`j' = "`p'"
 							
+							cap macro drop _k3b
 							qui sum baseline_k3 if id_agree == `pta'
 							local k3b = r(mean)
 							qui putexcel C`j' = "`k3b'"
-
+							
 							
 							********************************************************************************
 							*B.2/ Run counterfactual datasets one by one and append the results to the excel file
@@ -592,12 +594,14 @@ foreach pta of global all_agree {
 							* COUNTERFACTUALS CLASSIFICATION *							 
 
 							********************************************************************************
-							* Only X out of XXXX  PTA are 'Deep'
 
 							
 								*1.1.1. load temp dataset
+								
 								global type "w"
+								
 								********************************************************************************
+
 								use `data_agree_cluster_w_`pta'_`p'', clear
 
 									cap drop area_num
@@ -721,12 +725,20 @@ foreach pta of global all_agree {
 								
 									* Fix deep PTA cluster number = 0 based on EC-enlargement 27 (117)
 									
+									cap macro drop _deep
+									sum k3 if id_agree == 117
+									local deep = r(mean)
+									qui putexcel E`j' = "`deep'"
+									
+									
+									cap macro drop _deep
 									sum k3 if id_agree == 117
 									local deep = r(mean)
 									replace k3 = 0 if k3 == `deep'
 									
 									di "Storing results to excel file"
 									
+									cap macro drop _k3m
 									qui sum k3 if id_agree == `pta'
 									local k3m = r(mean)
 									qui putexcel D`j' = "`k3m'" 
@@ -932,10 +944,12 @@ foreach pta of global all_agree {
 									
 									* Fix deep PTA cluster number = 0 based on EC-enlargement 27 (117)
 									
+									
+									cap macro drop _deep
 									sum baseline_k3 if id_agree == 117
 									local deep = r(mean)
 									replace baseline_k3 = 0 if baseline_k3 == `deep'
-									tab baseline_k3
+									
 									
 									*levelsof id_agree if baseline_k3 != 0
 							
@@ -944,6 +958,7 @@ foreach pta of global all_agree {
 							qui putexcel A`j' = "`pta'"
 							qui putexcel B`j' = "`p'"
 							
+							cap macro drop _k3b
 							qui sum baseline_k3 if id_agree == `pta'
 							local k3b = r(mean)
 							qui putexcel C`j' = "`k3b'"
@@ -956,13 +971,14 @@ foreach pta of global all_agree {
 							* COUNTERFACTUALS CLASSIFICATION *							 
 
 							********************************************************************************
-							* Only X out of XXXX  PTA are 'Deep'
 
 							
 								*1.1.1. load temp dataset
+								
 								global type "w"
+								
 								********************************************************************************
-								*use "$CLUS/data_agree_cluster_CF/data_agree_cluster_w_40_14.dta", clear 
+								
 								use `data_agree_cluster_w_`pta'_`p'', clear
 									cap drop area_num
 									gen area_num = 0
@@ -1083,14 +1099,23 @@ foreach pta of global all_agree {
 
 								*1.1.3. store results
 								
-									* Fix deep PTA cluster number = 0 based on EC-enlargement 27 (117)
+									* Fix deep PTA cluster number = 0 based on 'EC-enlargement 27' (117)
 									
+																		
+									cap macro drop _deep
+									sum k3 if id_agree == 117
+									local deep = r(mean)
+									qui putexcel E`j' = "`deep'"
+									
+													
+									cap macro drop _deep
 									sum k3 if id_agree == 117
 									local deep = r(mean)
 									replace k3 = 0 if k3 == `deep'
 
 									di "Storing results to excel file"
 									
+									cap macro drop _k3m
 									qui sum k3 if id_agree == `pta'
 									local k3m = r(mean)
 									qui putexcel D`j' = "`k3m'" 
@@ -1152,72 +1177,72 @@ foreach pta of global all_agree {
 }
 
 
-
-
-*** SUMMARY RESULTS ***
-
-
-*1.1. summarize results : which provisions for each PTA allow to go from either shallow/med to deep (LE) ?
-
-* Comment here: 
-
-import excel "$TEMP/switch_opt1__le.xlsx", firstrow clear
-destring _all, replace
-gen switch_ = 0
-replace switch_ = 1 if k3 == 0 & k3 != k3_b 
-tab provision if switch_ == 1 
-sort id_agree
-by id_agree: egen switchany_ = sum(switch_)
-replace switchany_ = 1 if switchany_ >= 1
-replace switchany_ = 1 if k3_baseline == 0
-
-//           1 |        321       14.37       14.37
-//           2 |        156        6.98       21.35
-//           3 |        121        5.42       26.77
-//           4 |        177        7.92       34.69
-//           5 |        167        7.48       42.17
-//           6 |         16        0.72       42.88
-//           7 |        204        9.13       52.01
-//           8 |        181        8.10       60.12
-//           9 |         37        1.66       61.77
-//          10 |        178        7.97       69.74
-//          11 |         16        0.72       70.46
-//          12 |         59        2.64       73.10
-//          13 |        159        7.12       80.21
-//          14 |         13        0.58       80.80
-//          15 |        173        7.74       88.54
-//          16 |         79        3.54       92.08
-//          17 |        156        6.98       99.06
-//          18 |         21        0.94      100.00
-
-
-
-
-*1.2. summarize results : which provisions for each PTA allow to go from either shallow/med to deep (non-LE)?
-
-* Comment here: 
-
-import excel "$TEMP/switch_opt1__nole.xlsx", firstrow clear
-destring _all, replace
-gen switch_ = 0
-replace switch_ = 1 if k3 == 0 & k3 != k3_b 
-tab provision if switch_ == 1 
-sort id_agree
-by id_agree: egen switchany_ = sum(switch_)
-replace switchany_ = 1 if switchany_ >= 1
-replace switchany_ = 1 if k3_baseline == 0
-
-
-//           1 |        290       39.19       39.19
-//           3 |         28        3.78       42.97
-//           9 |         77       10.41       53.38
-//          12 |        339       45.81       99.19
-//          16 |          2        0.27       99.46
-//          18 |          4        0.54      100.00
-
-
-
-
+//
+//
+// *** SUMMARY RESULTS ***
+//
+//
+// *1.1. summarize results : which provisions for each PTA allow to go from either shallow/med to deep (LE) ?
+//
+// * Comment here: 
+//
+// import excel "$TEMP/switch_opt1__le.xlsx", firstrow clear
+// destring _all, replace
+// gen switch_ = 0
+// replace switch_ = 1 if k3 == 0 & k3 != k3_b 
+// tab provision if switch_ == 1 
+// sort id_agree
+// by id_agree: egen switchany_ = sum(switch_)
+// replace switchany_ = 1 if switchany_ >= 1
+// replace switchany_ = 1 if k3_baseline == 0
+//
+// //           1 |        321       14.37       14.37
+// //           2 |        156        6.98       21.35
+// //           3 |        121        5.42       26.77
+// //           4 |        177        7.92       34.69
+// //           5 |        167        7.48       42.17
+// //           6 |         16        0.72       42.88
+// //           7 |        204        9.13       52.01
+// //           8 |        181        8.10       60.12
+// //           9 |         37        1.66       61.77
+// //          10 |        178        7.97       69.74
+// //          11 |         16        0.72       70.46
+// //          12 |         59        2.64       73.10
+// //          13 |        159        7.12       80.21
+// //          14 |         13        0.58       80.80
+// //          15 |        173        7.74       88.54
+// //          16 |         79        3.54       92.08
+// //          17 |        156        6.98       99.06
+// //          18 |         21        0.94      100.00
+//
+//
+//
+//
+// *1.2. summarize results : which provisions for each PTA allow to go from either shallow/med to deep (non-LE)?
+//
+// * Comment here: 
+//
+// import excel "$TEMP/switch_opt1__nole.xlsx", firstrow clear
+// destring _all, replace
+// gen switch_ = 0
+// replace switch_ = 1 if k3 == 0 & k3 != k3_b 
+// tab provision if switch_ == 1 
+// sort id_agree
+// by id_agree: egen switchany_ = sum(switch_)
+// replace switchany_ = 1 if switchany_ >= 1
+// replace switchany_ = 1 if k3_baseline == 0
+//
+//
+// //           1 |        290       39.19       39.19
+// //           3 |         28        3.78       42.97
+// //           9 |         77       10.41       53.38
+// //          12 |        339       45.81       99.19
+// //          16 |          2        0.27       99.46
+// //          18 |          4        0.54      100.00
+//
+//
+//
+//
 
 
 
