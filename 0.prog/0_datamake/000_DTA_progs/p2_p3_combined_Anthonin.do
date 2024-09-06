@@ -22,7 +22,7 @@ global all_agree "1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 24 25
 * global for LE or non- LE (this should be added to the '0.Master_DTA.do' do.file.)
 
 cap macro drop le
-// global le "_le"
+global le "_le"
  
 
 
@@ -980,6 +980,7 @@ foreach pta of global all_agree {
 								********************************************************************************
 								
 								use `data_agree_cluster_w_`pta'_`p'', clear
+								
 									cap drop area_num
 									gen area_num = 0
 									replace area_num = 1 if Area == "`are'"
